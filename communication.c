@@ -3,7 +3,7 @@
 
 bool handleTimeout(void *arg);
 bool handleInput  (void *arg),
-bool handleMessage(void *arg,const addr_t from, const char *message);
+bool handleMessage(void *arg, const addr_t from, const char *message);
 
 
 bool handleTimeout(void *arg){
