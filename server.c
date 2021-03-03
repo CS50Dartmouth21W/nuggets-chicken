@@ -10,16 +10,18 @@
 #include <stdlib.h>
 #include <string.h>
 #include "file.h"
+#include "counters.h"
 
 
 void map_loader(FILE *fptr, char *map[]);
-void gold_generator(char *map[]);
+counters_t* gold_generator(char *map[]);
 
 static const int GoldTotal = 250;      // amount of gold in the game
 static const int GoldMinNumPiles = 10; // minimum number of gold piles
 static const int GoldMaxNumPiles = 30; // maximum number of gold piles
 int rows;
 int columns;
+counters_t* goldcounts;
 
 int main(int argc, char* argv[]) {
 
@@ -65,7 +67,7 @@ int main(int argc, char* argv[]) {
 
         map_loader(fptr, map);
 
-        gold_generator(map);
+        goldcounts = gold_generator(map);
         
         for (int i=0; i < rows; i++) {
             printf("%s\n", map[i]);
@@ -91,7 +93,9 @@ void map_loader(FILE *fptr, char *map[]) {
 }
 
 // drops gold nuggets in a random number of random-sized piles, each pile at some spot in a room. 
-void gold_generator(char *map[]) {
+counters_t* gold_generator(char *map[]) {
+
+        counters_t* goldcount = counters_new();
         
         // choose a random number of piles between GoldMaxNumPiles and GoldMinNumPiles
         int numPiles = (rand() % (GoldMaxNumPiles - GoldMinNumPiles + 1) + GoldMinNumPiles);
@@ -108,14 +112,18 @@ void gold_generator(char *map[]) {
             // if the random location is an empty room spot, drop gold
             if (map[row][column] == '.') {
                 int numGoldInPile;
+                int position;
                 if (numPiles == 1){
                     numGoldInPile = goldToDrop;    // drop all the gold left in the last pile
                 } else {
                     int maxGoldInPile = goldToDrop - numPiles + 1;  // max gold that can be dropped in a pile (in order to have at least one gold per remaining pile)
-                    numGoldInPile = (rand() % (maxGoldInPile - 1 + 1) + 1); // random number between 1 and maxGold
+                    numGoldInPile = (rand() % (maxGoldInPile) + 1); // random number between 1 and maxGold
                 }
                 printf("Pile #: %d, numGoldInPile %d\n", numPiles, numGoldInPile);
                 map[row][column] = '*';
+                position = row*(columns-1);
+                position += column;
+                counters_set(goldcounts, position, numGoldInPile);
 
                 goldToDrop -= numGoldInPile;
                 numPiles--;
@@ -123,5 +131,5 @@ void gold_generator(char *map[]) {
         }
 
         printf("Gold to drop is: %d\n", goldToDrop);
+        return goldcount;
 }
-
