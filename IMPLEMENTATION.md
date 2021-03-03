@@ -4,6 +4,9 @@
 ## Pseudo Code for Major Components
 
 #### map_loader
+
+This function loads the map into an array of pointers to chars.
+
 1. Open the file passed in the function parameters
 1. IF the file is null return an error
 1. Else use freadlinep() to read lines of the file into strings
@@ -11,6 +14,9 @@
 1. After looping, insert the array of strings into the hashtable passed as a parameter with a key ‘main’ which will be used as the main/spectator map.
 
 #### gold_generator
+
+This function drops a random number of gold piles between min and max with a random number of gold in each pile.
+
 Note: srand() is called in main, behavior is already seeded. This implementation is also rather inefficient (the function may have to iterate over the map multiple times, which could be thousands of characters), but does so in order to introduce as much random behavior into gold pile generation as possible.
 1. Create a counters struct with position in map as the key and the number of gold in the pile as the counters
 2. Choose a random number of piles between the min and the max to create
@@ -26,6 +32,9 @@ Note: srand() is called in main, behavior is already seeded. This implementation
 2. Return the counters struct
 
 #### get_visible
+
+This function modifies a map given a player location, calculating visibility and getting characters from the main/spectator map.
+
 1. Use the provided key parameter to access the correct map in the hashtable.
 1. Create a new empty map based on the dimensions of the accessed map.
 1. Perform logic to get visible characters from provided position parameter
@@ -33,12 +42,18 @@ Note: srand() is called in main, behavior is already seeded. This implementation
 1. Return the new map
 
 #### update_maps
+
+This function updates the map of a player by calling get_visible appropriately. 
+
 1. Loop through every map except the main map
 1. Iterate through the map incrementing a position integer until the character corresponding to the map is found
 1. Call get_visible passing it the current key, its map, and the position of that key.
 1. Add every character that is not blank in the returned map to the keys current map
 
 #### create_Player
+
+This function adds a new player struct into the hashtable of clients and drops the player in a random room spot.
+
 1. While true:
 1. Set int row to a random number between 0 and width of map - 1
 1. Set int column to a random number between 0 and height of map - 1
@@ -50,6 +65,9 @@ Note: srand() is called in main, behavior is already seeded. This implementation
 1. Return the player
 
 ### handle_message
+
+This function processes messages passed between server and client.
+
 1. Server is updated by calling message_send (sends message to the server)
 
 Handle Message – part of the message_loop
@@ -142,16 +160,16 @@ main(int argc, char* argv[]);
 ```
 
 ## Data Structures
-* hashtable of clients
+* hashtable of clients:
 Has name as key and player struct as item
 Keeps track of all players and their information
-* spectator 
-Stored as a key in the maps hashtable
-* maps
-hashtable of maps for individual players and for the spectator/main map
-* message
+* spectator: 
+Stored as an item in the maps hashtable
+* maps:
+hashtable of maps for individual players and for the spectator/main map. The player name is key and array is item.
+* message:
 leverages the message data type that will be sent from the server to the players and spectators
-* counters
+* counters:
 Used to keep track of number of gold in gold piles
 
 ## Resource Management
