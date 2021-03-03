@@ -11,81 +11,22 @@
 #include <string.h>
 #include "file.h"
 #include "./libcs50/counters.h"
-
-static const int MaxPlayers = 10;  // maximum number of players
-
-typedef struct game {
-    bool isover;
-    int numPlayers;
-    // TODO: add an array of struct players of size numPlayers
-    int cols;
-    int rows;
-    char* spectator;
-    char* map[];
-} game_t;
-
-typedef struct player {
-    char *name;
-    int row;
-    int column;
-    int gold;
-} player_t;
+#include "./libcs50/hashtable.h"
+#include "./communication.c"
+#include "./support/message.h"
+#include "./support/log.h"
+#include "./game.h"
+#include "./player.h"
 
 game_t* map_loader(const char *file);
 counters_t* gold_generator(game_t *game);
-player_t *createPlayer(game_t* game, char *name);
 
+static const int MaxPlayers = 10;  // maximum number of players
 static const int GoldTotal = 250;      // amount of gold in the game
 static const int GoldMinNumPiles = 10; // minimum number of gold piles
 static const int GoldMaxNumPiles = 30; // maximum number of gold piles
+static const int timeout = 5000;
 
-/*
- * This function is given a player name as well as the game the player is added to
- * and it returnns a new player that was previously on a point with a '.'
- * */
-player_t *player_new(char *name, game_t *game) {
-    player_t *player = malloc(sizeof(player_t));
-    player->name = name;
-    player->gold = 0;
-
-    while (1) {
-        int row = rand() % (game->rows);    // random number from 0 to row-1
-        int column = rand() % (game->cols);
-
-        // if the random location is an empty room spot, add a player to that spot
-        if (game->map[row][column] == '.') {
-            player->row = row;
-            player->column = column;
-            game->map[row][column] = '@';
-            break;
-        }
-    }
-
-    // TODO: ADD PLAYER TO THE GAME OBJECT
-
-    return player;
-}
-
-
-// initializes a game struct
-game_t *game_new(char *map[], int rows, int cols) {
-    game_t *game = malloc(sizeof(game_t) + (rows + 1) * (cols + 1) * sizeof(char));
-    game->rows = rows;
-    game->cols = cols;
-    for (int i = 0; i < rows; i++){
-        game->map[i] = map[i];
-    }
-
-    return game;
-}
-
-void game_delete(game_t *game){
-    for (int i = 0; i < game->rows; i++){
-        free(game->map[i]);
-    }
-    //TODO: FREE OTHER STUFF
-    free(game);
-}
 
 int main(int argc, char* argv[]) {
     // check if number of parameters is correct
@@ -106,29 +47,36 @@ int main(int argc, char* argv[]) {
         if (*lastchar == '\0' && seed > 0) {
             srand(seed);
         } else{
-            printf("Seed must be a %s number\n", (*lastchar != '\0') ? "" : "positive");
+            printf("Seed must be a positive number\n");
             return 1;
         }
     }
 
     game_t *game = map_loader(argv[1]);
     if(game == NULL) return 1;
-
-    counters_t *goldcounts = gold_generator(game);
-        
+ 
     for (int i=0; i < game->rows; i++) {
         printf("%s\n", game->map[i]);
     }
 
+    gold_generator(game);
+
     player_t *John = player_new("John", game);
     printf("%s %d %d\n", John->name, John->row, John->column);
-    
+   
+    while(game->totalGoldCollected < GoldTotal){
+        message_init(stderr);
+        message_loop(game, timeout, handleTimeout, handleInput, handleMessage);
+        message_done();
+    }
+
     game_delete(game);
-    counters_delete(goldcounts);
+    //counters_delete(goldcounts);
     free(John);
     return 0;
 }
 
+// TODO: WRITE A GAME OVER FUNCTION PRINTING STUFF OUT
 
 game_t* map_loader(const char *file) {
     FILE *fptr = fopen(file, "r"); 
@@ -152,7 +100,7 @@ game_t* map_loader(const char *file) {
         }
         
         int cols = strlen(map[0]);
-        game = game_new(map, rows, cols);
+        game = game_new(map, rows, cols, MaxPlayers);
     } else {
         printf("%s is an empty file", file);
     }
@@ -161,7 +109,10 @@ game_t* map_loader(const char *file) {
     return game;
 }
 
-// drops gold nuggets in a random number of random-sized piles, each pile at some spot in a room. 
+// drops gold nuggets in a random number of random-sized piles, each pile at some spot in a room.
+//
+// TODO: currently, all gold creation is first pile heavy as it starts at 250
+//      should implmeent a max size for a gold pile for even distribution 
 counters_t* gold_generator(game_t *game) { 
         int rows = game->rows;
         int columns = game->cols;
@@ -195,8 +146,15 @@ counters_t* gold_generator(game_t *game) {
                     // random number between 1 and maxGold
                     numGoldInPile = (rand() % (maxGoldInPile) + 1); 
                 }
+                
+                
                 printf("Pile #: %d, numGoldInPile %d\n", numPiles, numGoldInPile);
                 game->map[row][column] = '*';
+                
+                // !!!!! i plan on replacing the counter with this !!!!!
+                game->goldcounts[row][column] = numGoldInPile;
+
+                printf("SETTING: %d %d %d\n", row, column, game->goldcounts[row][column]);
                 position = row*(columns-1);
                 position += column;
                 counters_set(goldcount, position, numGoldInPile);
