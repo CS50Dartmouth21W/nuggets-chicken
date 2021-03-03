@@ -1,32 +1,39 @@
-# Makefile for server.c
+# Makefile for the server
 #
-# Jason Chen
-# CS50, March 2, 2021
+# Jack Benhayon 21W
 
-CC = gcc
-CFLAGS = -Wall -pedantic -std=c11 -ggdb
+L = ./libcs50
+S = ./support
+CC=gcc
+CFLAGS=-Wall -pedantic -std=c11 -ggdb -I$L
 PROG = server
-OBJS = server.o file.o
-LIBS = support/support.a
+OBJS = server.o game.o player.o $S/message.o $S/log.o
+LLIBS = $L/libcs50.a
 
-.PHONY: all clean
+.PHONY: all clean test
 
-#all: crawler
+all: $(PROG)
 
 # executable depends on object files
-$(PROG): $(OBJS)
-	$(CC) $(CFLAGS) $(OBJS) $(LIBS) -o $(PROG)
+$(PROG): $(OBJS) $(LLIBS)
+	$(CC) $(CFLAGS) $(OBJS) -o $(PROG) $(LIBS) $(LLIBS)
 
 # object files depend on include files
+server.o: $L/file.h $L/counters.h ./communication.c $S/log.h $S/message.h
+communications.o :
+player.o : 
+game.o : 
+$S/message.o :
+$S/log.o : 	
 
-file.o: file.c
+test: $(PROG)
+	./testing.sh
 
-server.o: file.h
+valgrind: $(PROG)
+	
 
-test: testing.sh
-	bash -v testing.sh
 
 clean:
-	rm -f $(PROG)
+	rm -f $(PROG) core
 	rm -f *~ *.o
 	rm -rf *.dSYM
