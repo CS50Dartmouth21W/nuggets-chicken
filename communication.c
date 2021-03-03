@@ -2,7 +2,7 @@
 #include <stdbool.h>
 
 bool handleTimeout(void *arg);
-bool handleInput  (void *arg),
+bool handleInput  (void *arg);
 bool handleMessage(void *arg,const addr_t from, const char *message);
 
 
