@@ -1,8 +1,10 @@
 #include <stdlib.h>
 #include <stdbool.h>
+#include "string.h"
 #include "./support/message.h"
 #include "./player.h"
 #include "./game.h"
+#include "math.h"
 
 bool handleTimeout(void *arg);
 bool handleInput  (void *arg);
@@ -12,12 +14,20 @@ bool handleMessage(void *arg, const addr_t from, const char *message);
 bool move(player_t *player, int dx, int dy);
 bool continuousMove(player_t *player, int dx, int dy);
 
+
+void sendOK(player_t *player);
+void sendGridInfo(player_t *player);
+void sendGoldInfo(player_t *player, int n);
+void sendDisplay(player_t *player);
+
+
+
 bool handleTimeout(void *arg){
     return true;
 }
 
 bool handleInput (void *arg){
-
+    printf("input: %p", arg);
     return true;
 }
 
@@ -26,7 +36,38 @@ bool handleInput (void *arg){
 //       work onn handleInput
 
 bool handleMessage(void *arg, const addr_t from, const char *message){
-    switch(message[0]){
+    if(message == NULL){
+        return true;
+    }
+
+    game_t *game = (game_t *) arg;
+
+    printf("message:  %s\n", message);
+    // parse message
+    char *cmd = strtok(message, " ");
+    char *messageArg = strtok(NULL, " ");
+
+    printf("cmd:  %s\n", cmd);
+    if(strcmp(cmd,"PLAY") == 0){
+        // add anew player 
+        printf("ADDING A NEW PLAYEr\n");
+        player_t *player = player_new(messageArg, game, from);
+
+        if(game->playersJoined + 1 <= game->MaxPlayers){
+            hashtable_insert(game->players, messageArg, player);
+            game->playersJoined++;
+        }
+        sendOK(player);
+        sendGridInfo(player);
+        sendGoldInfo(player, 0);
+        sendDisplay(player); 
+
+    } else if(strcmp(cmd, "KEY") == 0){
+
+        //
+        printf("PLAYER PRESSED KEY : %s", messageArg); 
+
+         switch(messageArg[0]){
         case 'Q':
             // quit game
             return true;//quit(arg);
@@ -47,7 +88,7 @@ bool handleMessage(void *arg, const addr_t from, const char *message){
             // move up and left
             return move((player_t *) arg, -1, 1);
         case 'u':
-            // move up and right
+         // move up and right
             return move((player_t *) arg, 1, 1);
         case 'b':
             // move down and left
@@ -81,8 +122,11 @@ bool handleMessage(void *arg, const addr_t from, const char *message){
         case 'N':
             // move down and right
             return continuousMove((player_t *) arg, 1, -1);
-
+         }
+    } else {
+        printf("INVALID COMMAND\n");
     }
+    
     return false;
 }
 
@@ -115,7 +159,7 @@ bool move(player_t *player, int dx, int dy){
         int newGold = player->game->goldcounts[newrow][newcol];
         player->gold += newGold; 
         player->game->goldcounts[newrow][newcol] = 0;
-        player->game->totalGoldCollected += newGold;
+        player->game->TotalGoldLeft -= newGold;
     }
 
     return true;
@@ -128,4 +172,54 @@ bool continuousMove(player_t *player, int dx, int dy){
     }else{
         return false;
     }
+}
+
+void sendOK(player_t *player){
+    char *OkMessage[5];
+    sprintf(OkMessage, "OK %c", player->name[0]);
+    message_send(player->addr, OkMessage);
+}
+
+void sendGridInfo(player_t *player){
+    int rows = player->game->rows;
+    int cols = player->game->cols;
+    int numDigits = 6 + getNumDigits(rows) + getNumDigits(cols);
+    
+    char *gridInfo[numDigits];
+    // Note to self: check for buffer overflow
+    sprintf(gridInfo, "GRID %d %d", rows, cols);
+    message_send(player->addr, gridInfo);
+}
+
+// n is the amount of gold found
+void sendGoldInfo(player_t *player, int n){
+    int p = player->gold;
+    int r = player->game->TotalGoldLeft;
+    
+    int numDigits = 7 + getNumDigits(n) + getNumDigits(p) + getNumDigits(r);
+    
+    char *goldInfo[numDigits];
+    sprintf(goldInfo, "GOLD %d %d %d", n, p, r);
+    message_send(player->addr, goldInfo);
+}
+
+void sendDisplay(player_t *player){
+    int rows = player->game->rows;
+    int cols = player->game->cols;
+    char *grid[(rows+1) * cols + 1];
+    
+    for(int i = 0; i<rows; i++){
+        strcat(grid, player->game->map[i]);
+        strcat(grid, "\n");
+    }
+    //grid[sf] = '\0';
+
+    char *displayInfo[8 + (rows+1) * cols];
+
+    sprintf(displayInfo, "DISPLAY\n%s", grid);
+    message_send(player->addr, displayInfo);
+}
+
+int getNumDigits(int a){
+    return (int)(ceil(log10(a))+1);
 }

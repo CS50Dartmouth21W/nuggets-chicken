@@ -61,10 +61,10 @@ int main(int argc, char* argv[]) {
 
     gold_generator(game);
 
-    player_t *John = player_new("John", game);
-    printf("%s %d %d\n", John->name, John->row, John->column);
+    //player_t *John = player_new("John", game);
+    //printf("%s %d %d\n", John->name, John->row, John->column);
    
-    while(game->totalGoldCollected < GoldTotal){
+    while(game->TotalGoldLeft > 0){
         message_init(stderr);
         message_loop(game, timeout, handleTimeout, handleInput, handleMessage);
         message_done();
@@ -72,7 +72,7 @@ int main(int argc, char* argv[]) {
 
     game_delete(game);
     //counters_delete(goldcounts);
-    free(John);
+    //free(John);
     return 0;
 }
 
@@ -100,7 +100,7 @@ game_t* map_loader(const char *file) {
         }
         
         int cols = strlen(map[0]);
-        game = game_new(map, rows, cols, MaxPlayers);
+        game = game_new(map, rows, cols, MaxPlayers, GoldTotal);
     } else {
         printf("%s is an empty file", file);
     }

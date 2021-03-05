@@ -9,8 +9,9 @@ typedef struct game {
     int cols;
     int rows;
     bool hasSpectator;
-    int totalGoldCollected;
     int playersJoined;
+    int MaxPlayers;
+    int TotalGoldLeft;
     // hashes name -> player object
     hashtable_t *players;
     //counters_t goldcounts;
@@ -19,7 +20,7 @@ typedef struct game {
 } game_t;
 
 
-game_t *game_new(char *map[], int rows, int cols, int MaxPlayers);
+game_t *game_new(char *map[], int rows, int cols, int MaxPlayers, int TotalGold);
 void game_delete(game_t *game);
 
 #endif

@@ -16,7 +16,7 @@ all: $(PROG)
 
 # executable depends on object files
 $(PROG): $(OBJS) $(LLIBS)
-	$(CC) $(CFLAGS) $(OBJS) -o $(PROG) $(LIBS) $(LLIBS)
+	$(CC) $(CFLAGS) $(OBJS) -o $(PROG) $(LIBS) $(LLIBS) -lm
 
 # object files depend on include files
 server.o: $L/file.h $L/counters.h ./communication.c $S/log.h $S/message.h

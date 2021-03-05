@@ -4,26 +4,14 @@
 #include "./game.h"
 #include "./player.h"
 
-/*typedef struct game {
-    bool isover;
-    int cols;
-    int rows;
-    bool hasSpectator;
-    int totalGoldCollected;
-    int playersJoined;
-    // hashes name -> player object
-    hashtable_t *players;
-    //counters_t goldcounts;
-    int **goldcounts;
-    char* map[];
-} game_t;*/
-
 
 // initializes a game struct
-game_t *game_new(char *map[], int rows, int cols, int MaxPlayers) {
+game_t *game_new(char *map[], int rows, int cols, int MaxPlayers, int TotalGold) {
     game_t *game = malloc(sizeof(game_t) + (rows + 1) * (cols + 1) * sizeof(char));
     game->rows = rows;
     game->cols = cols;
+
+    game->TotalGoldLeft = TotalGold;
     game->goldcounts = malloc((rows + 1) * sizeof(int *));
 
     for (int i = 0; i < rows; i++){
@@ -35,6 +23,8 @@ game_t *game_new(char *map[], int rows, int cols, int MaxPlayers) {
     }
 
     game->players = hashtable_new(MaxPlayers);
+    game->MaxPlayers = MaxPlayers;
+    game->playersJoined = 0;
     //counters_t *goldcounts = gold_generator(game);
 
     return game;
