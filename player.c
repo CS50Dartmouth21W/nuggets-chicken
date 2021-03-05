@@ -17,13 +17,13 @@ player_t *player_new(char *name, game_t *game, const addr_t addr) {
 
     while (1) {
         int row = rand() % (game->rows);    // random number from 0 to row-1
-        int column = rand() % (game->cols);
+        int col = rand() % (game->cols);
 
         // if the random location is an empty room spot, add a player to that spot
-        if (game->map[row][column] == '.') {
+        if (game->map[row][col] == '.') {
             player->row = row;
-            player->column = column;
-            game->map[row][column] = '@';
+            player->col = col;
+            game->map[row][col] = '@';
             break;
         }
     }

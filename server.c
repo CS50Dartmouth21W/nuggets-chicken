@@ -55,9 +55,9 @@ int main(int argc, char* argv[]) {
     game_t *game = map_loader(argv[1]);
     if(game == NULL) return 1;
  
-    for (int i=0; i < game->rows; i++) {
+    /*for (int i=0; i < game->rows; i++) {
         printf("%s\n", game->map[i]);
-    }
+    }*/
 
     gold_generator(game);
 
@@ -100,6 +100,10 @@ game_t* map_loader(const char *file) {
         }
         
         int cols = strlen(map[0]);
+
+        //printf("rows: %d\n", rows);
+        //printf("cols: %d\n", cols);
+
         game = game_new(map, rows, cols, MaxPlayers, GoldTotal);
     } else {
         printf("%s is an empty file", file);

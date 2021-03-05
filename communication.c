@@ -20,6 +20,9 @@ void sendGridInfo(player_t *player);
 void sendGoldInfo(player_t *player, int n);
 void sendDisplay(player_t *player);
 
+player_t *getPlayerByAddr(game_t *game, const addr_t addr);
+static void find_player(void *arg, const char *key, void *item);
+
 
 
 bool handleTimeout(void *arg){
@@ -46,11 +49,12 @@ bool handleMessage(void *arg, const addr_t from, const char *message){
     // parse message
     char *cmd = strtok(message, " ");
     char *messageArg = strtok(NULL, " ");
+    if(cmd == NULL|| messageArg == NULL){
+        return false;        
+    }
 
-    printf("cmd:  %s\n", cmd);
     if(strcmp(cmd,"PLAY") == 0){
         // add anew player 
-        printf("ADDING A NEW PLAYEr\n");
         player_t *player = player_new(messageArg, game, from);
 
         if(game->playersJoined + 1 <= game->MaxPlayers){
@@ -64,65 +68,83 @@ bool handleMessage(void *arg, const addr_t from, const char *message){
 
     } else if(strcmp(cmd, "KEY") == 0){
 
-        //
-        printf("PLAYER PRESSED KEY : %s", messageArg); 
-
+        player_t *player = getPlayerByAddr(game, from);
+        
          switch(messageArg[0]){
         case 'Q':
             // quit game
             return true;//quit(arg);
+
         // singular move 
         case 'h':
             // move left
-            return move((player_t *) arg, -1, 0); 
+            move(player, -1, 0);
+            break;
         case 'l':
             // move right
-            return move((player_t *) arg, 1, 0); 
+            move(player, 1, 0); 
+            break;
         case 'j':
             // move down
-            return move((player_t *) arg, 0, -1); 
+            move(player, 0, -1); 
+            break;
         case 'k':
             // move up
-            return move((player_t *) arg, 0, 1); 
+            move(player, 0, 1); 
+            break;
         case 'y':
             // move up and left
-            return move((player_t *) arg, -1, 1);
+            move(player, -1, 1);
+            break;
         case 'u':
-         // move up and right
-            return move((player_t *) arg, 1, 1);
+            // move up and right
+             move(player, 1, 1);
+            break;
         case 'b':
             // move down and left
-            return move((player_t *) arg, -1, -1);
+            move(player, -1, -1);
+            break;
         case 'n':
             // move down and right
-            return move((player_t *) arg, 1, -1);
+            move(player, 1, -1);
+            break;
 
         // continuous movement
         case 'H':
             // move left
-            return continuousMove((player_t *) arg, -1, 0);
+            continuousMove(player, -1, 0);
+            break;
         case 'L':
             // move right
-            return continuousMove((player_t *) arg, 1, 0);
+            continuousMove(player, 1, 0);
+            break;
         case 'J':
             // move down
-            return continuousMove((player_t *) arg, 0, -1);
+            continuousMove(player, 0, -1);
+            break;
         case 'K':
             // move up
-            return continuousMove((player_t *) arg, 0, 1);
+            continuousMove(player, 0, 1);
+            break;
         case 'Y':
             // move up and left
-            return continuousMove((player_t *) arg, -1, 1);
+            continuousMove(player, -1, 1);
+            break;
         case 'U':
             // move up and right
-            return continuousMove((player_t *) arg, 1, 1);
+            continuousMove(player, 1, 1);
+            break;
         case 'B':
             // move down and left
-            return continuousMove((player_t *) arg, -1, -1);
+            continuousMove(player, -1, -1);
+            break;
         case 'N':
             // move down and right
-            return continuousMove((player_t *) arg, 1, -1);
+            continuousMove(player, 1, -1);
+            break;
          }
+
+         sendDisplay(player);
     } else {
         printf("INVALID COMMAND\n");
     }
@@ -136,33 +158,36 @@ bool handleMessage(void *arg, const addr_t from, const char *message){
  */
 bool move(player_t *player, int dx, int dy){
     // check if is spectator or player
+    game_t *game = player->game;
 
-    int newrow = player->row + dy;
-    int newcol = player->column + dx;
+    // up means you lower row number
+    int newrow = player->row - dy;
+    int newcol = player->col + dx;
 
-    if(newrow < 0 || newcol < 0 || newrow > player->game->rows || newcol > player->game->cols){
-        // can't move there
-        return false;
-    }
+    char c = game->map[newrow][newcol];
+    printf("\n%d\n", newrow);
+    printf("%d\n", newcol);
+    printf("CHARACTER IS: %c\n", c);
+    printf("\n\n");
+    
+    if((newrow >= 0 || newcol >= 0 || newrow < game->rows || newcol < game->cols)
+        && (c == '*' || c == '.' || c == '#')){
 
-    char c = player->game->map[newrow][newcol] == '.';
-
-    if(c == '*' || c == '.'){
+        game->map[player->row][player->col] = '.';
+        game->map[newrow][newcol] = '@';
         player->row = newrow;
-        player->column = newcol;
-    } else {
-        // can't move there
-        return false;   
+        player->col = newcol;
+
+        if(c == '*'){
+            int newGold = game->goldcounts[newrow][newcol];
+            player->gold += newGold; 
+            game->goldcounts[newrow][newcol] = 0;
+            game->TotalGoldLeft -= newGold;
+            sendGoldInfo(player, newGold);
+        }
     }
 
-    if(c == '*'){
-        int newGold = player->game->goldcounts[newrow][newcol];
-        player->gold += newGold; 
-        player->game->goldcounts[newrow][newcol] = 0;
-        player->game->TotalGoldLeft -= newGold;
-    }
-
-    return true;
+    return false;
 }
 
 bool continuousMove(player_t *player, int dx, int dy){
@@ -204,22 +229,45 @@ void sendGoldInfo(player_t *player, int n){
 }
 
 void sendDisplay(player_t *player){
-    int rows = player->game->rows;
-    int cols = player->game->cols;
-    char *grid[(rows+1) * cols + 1];
-    
-    for(int i = 0; i<rows; i++){
-        strcat(grid, player->game->map[i]);
-        strcat(grid, "\n");
-    }
-    //grid[sf] = '\0';
-
+    game_t *game = player->game;
+    int rows = game->rows;
+    int cols = game->cols;
     char *displayInfo[8 + (rows+1) * cols];
+    strcpy(displayInfo, "DISPLAY\n");
 
-    sprintf(displayInfo, "DISPLAY\n%s", grid);
+    for(int i = 0; i<rows; i++){
+        strcat(displayInfo, game->map[i]);
+        strcat(displayInfo, "\n");
+    }
+
     message_send(player->addr, displayInfo);
 }
 
 int getNumDigits(int a){
     return (int)(ceil(log10(a))+1);
+}
+
+typedef struct htSearch {
+    player_t *result;
+    addr_t addr;
+} htSearch_t;
+
+player_t *getPlayerByAddr(game_t *game, const addr_t addr){
+    htSearch_t *obj = malloc(sizeof(htSearch_t));
+    obj->addr = addr;
+    obj->result = NULL;
+
+    hashtable_iterate(game->players, obj, find_player);
+    
+    //free(obj->addr);
+    player_t *result = obj->result;
+    free(obj); 
+    return result;
+}
+
+static void find_player(void *arg, const char *key, void *item){
+    htSearch_t *search = (htSearch_t *) arg;
+    if(message_eqAddr(search->addr, ((player_t *) item)->addr)){
+        search->result = item;
+    }
 }

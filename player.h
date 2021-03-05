@@ -6,7 +6,7 @@
 typedef struct player {
     char *name;
     int row;
-    int column;
+    int col;
     int gold;
     addr_t addr;
     game_t *game;
