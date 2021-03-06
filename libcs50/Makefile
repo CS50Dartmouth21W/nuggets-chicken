@@ -4,7 +4,7 @@
 # If you prefer our data-structure implementation over your own, modify 
 # the rule for `$(LIB)`:
 # $(LIB): libcs50-given.a
-#	cp libcs50-given.a $(LIB)
+# 	cp libcs50-given.a $(LIB)
 #
 # David Kotz, April 2016, July 2017, April 2019
 # updated by Xia Zhou, July 2016
@@ -26,6 +26,7 @@ MAKE = make
 # Build the library by archiving object files
 $(LIB): $(OBJS)
 	ar cr $(LIB) $(OBJS)
+
 
 # Dependencies: object files depend on header files
 bag.o: bag.h

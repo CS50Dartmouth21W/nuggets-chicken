@@ -9,6 +9,7 @@ typedef struct player {
     int col;
     int gold;
     int id;
+    int inRoom;
     addr_t addr;
     game_t *game;
     char letter;

@@ -158,6 +158,7 @@ bool handleMessage(void *arg, const addr_t from, const char *message){
             // move down and right
             continuousMove(player, 1, -1);
             break;
+
          }
 
          sendDisplay(game);
@@ -194,8 +195,19 @@ bool move(player_t *player, int dx, int dy){
     
     if((newrow >= 0 || newcol >= 0 || newrow < game->rows || newcol < game->cols)
         && (c == '*' || c == '.' || c == '#')){
+        // check whether player is in room or not before replacing character
+        if (player->inRoom == 1) {
+            game->map[player->row][player->col] = '.';
+        } else {
+            game->map[player->row][player->col] = '#';
+        }
 
-        game->map[player->row][player->col] = '.';
+        // update whether player's new location will be in room or hallway
+        if (game->map[newrow][newcol] == '.') {
+            player->inRoom = 1;
+        } else {
+            player->inRoom = 0;
+        }
         game->map[newrow][newcol] = player->letter;
         player->row = newrow;
         player->col = newcol;

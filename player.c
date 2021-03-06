@@ -14,6 +14,7 @@ player_t *player_new(char *name, game_t *game, const addr_t addr) {
     player->name = name;
     player->gold = 0;
     player->game = game;
+    player->inRoom = 1;
     player->id = game->playersJoined;
     game->playersJoined++;
     player->letter = (char)(player->id + 'A');
