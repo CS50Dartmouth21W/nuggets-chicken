@@ -11,6 +11,7 @@ typedef struct player {
     int id;
     addr_t addr;
     game_t *game;
+    char letter;
     char *visibility[];
 } player_t;
 

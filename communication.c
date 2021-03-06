@@ -19,12 +19,13 @@ bool continuousMove(player_t *player, int dx, int dy);
 void sendOK(player_t *player);
 void sendGridInfo(player_t *player);
 void sendGoldInfo(player_t *player, int n);
-void sendDisplay(player_t *player);
+void sendDisplay(game_t *game);
 
 player_t *getPlayerByAddr(game_t *game, const addr_t addr);
 static void find_player(void *arg, const char *key, void *item);
 static void sort_players(void *arg, const char *key, void *item);
 static void broadcast(void *arg, const char *key, void *item);
+static void broadcastDisplay(void *arg, const char *key, void *item);
 
 void quit(const addr_t addr, const char *reason){
     char quitMessage[sizeof(char)*strlen(reason) + 6]; 
@@ -61,7 +62,7 @@ bool handleMessage(void *arg, const addr_t from, const char *message){
         // add a new player 
         player_t *player = player_new(messageArg, game, from);
 
-        if(game->playersJoined + 1 <= game->MaxPlayers){
+        if(game->playersJoined < game->MaxPlayers){
             if(strcmp(messageArg, "") == 0){
                 quit(from, "Sorry - you must provide player's name.");
             }else{
@@ -70,7 +71,7 @@ bool handleMessage(void *arg, const addr_t from, const char *message){
                 sendOK(player);
                 sendGridInfo(player);
                 sendGoldInfo(player, 0);
-                sendDisplay(player); 
+                sendDisplay(game); 
             }
         } else {
             quit(from, "Game is full: no more players can join.");
@@ -159,7 +160,7 @@ bool handleMessage(void *arg, const addr_t from, const char *message){
             break;
          }
 
-         sendDisplay(player);
+         sendDisplay(game);
          if(game->TotalGoldLeft == 0){
             sendGameOver(player->addr, game);
             return true;
@@ -195,7 +196,7 @@ bool move(player_t *player, int dx, int dy){
         && (c == '*' || c == '.' || c == '#')){
 
         game->map[player->row][player->col] = '.';
-        game->map[newrow][newcol] = '@';
+        game->map[newrow][newcol] = player->letter;
         player->row = newrow;
         player->col = newcol;
 
@@ -223,7 +224,7 @@ bool continuousMove(player_t *player, int dx, int dy){
 
 void sendOK(player_t *player){
     char *OkMessage[5];
-    sprintf(OkMessage, "OK %c", (char)(player->id + 'A'));
+    sprintf(OkMessage, "OK %c", player->letter);
     message_send(player->addr, OkMessage);
 }
 
@@ -250,8 +251,7 @@ void sendGoldInfo(player_t *player, int n){
     message_send(player->addr, goldInfo);
 }
 
-void sendDisplay(player_t *player){
-    game_t *game = player->game;
+void sendDisplay(game_t *game){
     int rows = game->rows;
     int cols = game->cols;
     char *displayInfo[8 + (rows+1) * cols];
@@ -261,16 +261,16 @@ void sendDisplay(player_t *player){
         strcat(displayInfo, game->map[i]);
         strcat(displayInfo, "\n");
     }
-
-    message_send(player->addr, displayInfo);
+    
+    hashtable_iterate(game->players, displayInfo, broadcastDisplay);
 }
 
 void sendGameOver(addr_t addr, game_t *game){
-    player_t *sorted[game->MaxPlayers];
+    player_t *sorted[50];
 
     hashtable_iterate(game->players, sorted, sort_players);
     
-    char* message[11 + game->MaxPlayers * 24];
+    char* message[200 + game->MaxPlayers * 24];
     strcat(message, "GAME OVER:\n");
     
     for (int i = 0; i<game->MaxPlayers; i++){
@@ -279,16 +279,17 @@ void sendGameOver(addr_t addr, game_t *game){
             break;
         }
 
-        char *line[24];
+        char line[40];
         // Here are the values for the printing format
         // number can't be more than 10 chars
         // first 10 letters of real name
-        sprintf(line, "%c %10d %10s\n", (char)('A' + i), player->gold, player->name); 
+        sprintf(line, "%c %10d %10s\n", player->letter, player->gold, player->name); 
         strcat(message, line);
     }
     printf("%s\n", message);
     hashtable_iterate(game->players, message, broadcast);
 }
+
 
 int getNumDigits(int a){
     return a == 0 ? 1 : (int)(ceil(log10(a))+1);
@@ -331,3 +332,12 @@ static void broadcast(void *arg, const char *key, void *item){
     player_t *player = (player_t *) item;    
     quit(player->addr, message);
 }
+
+static void broadcastDisplay(void *arg, const char *key, void *item){
+    char* display = (char *) arg;
+    player_t *player = (player_t *) item;    
+    message_send(player->addr, display);
+}
+
+
+
