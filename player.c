@@ -14,6 +14,8 @@ player_t *player_new(char *name, game_t *game, const addr_t addr) {
     player->name = name;
     player->gold = 0;
     player->game = game;
+    player->id = game->playersJoined;
+    game->playersJoined++;
 
     while (1) {
         int row = rand() % (game->rows);    // random number from 0 to row-1
@@ -29,9 +31,12 @@ player_t *player_new(char *name, game_t *game, const addr_t addr) {
     }
 
     hashtable_insert(player->game->players, name, player);
-
     player->addr = addr;
 
     return player;
+}
+
+void player_delete(player_t *player){
+    if(player != NULL) free(player);
 }
 

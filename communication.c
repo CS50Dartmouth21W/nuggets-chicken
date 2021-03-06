@@ -5,6 +5,7 @@
 #include "./player.h"
 #include "./game.h"
 #include "math.h"
+#include "./libcs50/hashtable.h"
 
 bool handleTimeout(void *arg);
 bool handleInput  (void *arg);
@@ -22,8 +23,15 @@ void sendDisplay(player_t *player);
 
 player_t *getPlayerByAddr(game_t *game, const addr_t addr);
 static void find_player(void *arg, const char *key, void *item);
+static void sort_players(void *arg, const char *key, void *item);
+static void broadcast(void *arg, const char *key, void *item);
 
-
+void quit(const addr_t addr, const char *reason){
+    char quitMessage[sizeof(char)*strlen(reason) + 6]; 
+    sprintf(quitMessage, "QUIT %s", reason);
+    printf("%s\n", reason);  
+    message_send(addr, quitMessage);
+}
 
 bool handleTimeout(void *arg){
     return true;
@@ -36,8 +44,7 @@ bool handleInput (void *arg){
 
 // TODO: update move to indclude the from
 //       work out handleTimeout
-//       work onn handleInput
-
+//       work on handleInput
 bool handleMessage(void *arg, const addr_t from, const char *message){
     if(message == NULL){
         return true;
@@ -49,31 +56,39 @@ bool handleMessage(void *arg, const addr_t from, const char *message){
     // parse message
     char *cmd = strtok(message, " ");
     char *messageArg = strtok(NULL, " ");
-    if(cmd == NULL|| messageArg == NULL){
-        return false;        
-    }
 
     if(strcmp(cmd,"PLAY") == 0){
-        // add anew player 
+        // add a new player 
         player_t *player = player_new(messageArg, game, from);
 
         if(game->playersJoined + 1 <= game->MaxPlayers){
-            hashtable_insert(game->players, messageArg, player);
-            game->playersJoined++;
+            if(strcmp(messageArg, "") == 0){
+                quit(from, "Sorry - you must provide player's name.");
+            }else{
+                hashtable_insert(game->players, messageArg, player);
+                game->playersJoined++;
+                sendOK(player);
+                sendGridInfo(player);
+                sendGoldInfo(player, 0);
+                sendDisplay(player); 
+            }
+        } else {
+            quit(from, "Game is full: no more players can join.");
         }
-        sendOK(player);
-        sendGridInfo(player);
-        sendGoldInfo(player, 0);
-        sendDisplay(player); 
 
     } else if(strcmp(cmd, "KEY") == 0){
 
         player_t *player = getPlayerByAddr(game, from);
         
-         switch(messageArg[0]){
+        if(strcmp(messageArg,"") == 0){
+            return false;
+        }
+
+        switch(messageArg[0]){
         case 'Q':
             // quit game
-            return true;//quit(arg);
+            quit(from, "Thanks for Playing");
+            return true;
 
         // singular move 
         case 'h':
@@ -145,6 +160,11 @@ bool handleMessage(void *arg, const addr_t from, const char *message){
          }
 
          sendDisplay(player);
+         if(game->TotalGoldLeft == 0){
+            sendGameOver(player->addr, game);
+            return true;
+         }
+
     } else {
         printf("INVALID COMMAND\n");
     }
@@ -155,20 +175,21 @@ bool handleMessage(void *arg, const addr_t from, const char *message){
 /*
  * move will move the player to the right by dx
  * and to upwards by dy
+ * 
+ * it will return false when it can't move to a psot
  */
 bool move(player_t *player, int dx, int dy){
-    // check if is spectator or player
+    // TODO: check if is spectator or player
+    printf("\n%s\n",player->name);
     game_t *game = player->game;
-
-    // up means you lower row number
     int newrow = player->row - dy;
     int newcol = player->col + dx;
 
     char c = game->map[newrow][newcol];
-    printf("\n%d\n", newrow);
-    printf("%d\n", newcol);
+    printf("new row: %d\n", newrow);
+    printf("new col: %d\n", newcol);
     printf("CHARACTER IS: %c\n", c);
-    printf("\n\n");
+    printf("\n");
     
     if((newrow >= 0 || newcol >= 0 || newrow < game->rows || newcol < game->cols)
         && (c == '*' || c == '.' || c == '#')){
@@ -185,9 +206,10 @@ bool move(player_t *player, int dx, int dy){
             game->TotalGoldLeft -= newGold;
             sendGoldInfo(player, newGold);
         }
+        return true;
+    } else{
+        return false;
     }
-
-    return false;
 }
 
 bool continuousMove(player_t *player, int dx, int dy){
@@ -201,7 +223,7 @@ bool continuousMove(player_t *player, int dx, int dy){
 
 void sendOK(player_t *player){
     char *OkMessage[5];
-    sprintf(OkMessage, "OK %c", player->name[0]);
+    sprintf(OkMessage, "OK %c", (char)(player->id + 'A'));
     message_send(player->addr, OkMessage);
 }
 
@@ -220,7 +242,7 @@ void sendGridInfo(player_t *player){
 void sendGoldInfo(player_t *player, int n){
     int p = player->gold;
     int r = player->game->TotalGoldLeft;
-    
+
     int numDigits = 7 + getNumDigits(n) + getNumDigits(p) + getNumDigits(r);
     
     char *goldInfo[numDigits];
@@ -243,10 +265,36 @@ void sendDisplay(player_t *player){
     message_send(player->addr, displayInfo);
 }
 
-int getNumDigits(int a){
-    return (int)(ceil(log10(a))+1);
+void sendGameOver(addr_t addr, game_t *game){
+    player_t *sorted[game->MaxPlayers];
+
+    hashtable_iterate(game->players, sorted, sort_players);
+    
+    char* message[11 + game->MaxPlayers * 24];
+    strcat(message, "GAME OVER:\n");
+    
+    for (int i = 0; i<game->MaxPlayers; i++){
+        player_t *player = sorted[i];
+        if(player == NULL){
+            break;
+        }
+
+        char *line[24];
+        // Here are the values for the printing format
+        // number can't be more than 10 chars
+        // first 10 letters of real name
+        sprintf(line, "%c %10d %10s\n", (char)('A' + i), player->gold, player->name); 
+        strcat(message, line);
+    }
+    printf("%s\n", message);
+    hashtable_iterate(game->players, message, broadcast);
 }
 
+int getNumDigits(int a){
+    return a == 0 ? 1 : (int)(ceil(log10(a))+1);
+}
+
+// struct used solely for searching
 typedef struct htSearch {
     player_t *result;
     addr_t addr;
@@ -270,4 +318,16 @@ static void find_player(void *arg, const char *key, void *item){
     if(message_eqAddr(search->addr, ((player_t *) item)->addr)){
         search->result = item;
     }
+}
+
+static void sort_players(void *arg, const char *key, void *item){
+    player_t **sorted = (player_t *) arg;
+    player_t *player = (player_t *) item;
+    sorted[player->id] = player;
+}
+
+static void broadcast(void *arg, const char *key, void *item){
+    char* message = (char *) arg;
+    player_t *player = (player_t *) item;    
+    quit(player->addr, message);
 }

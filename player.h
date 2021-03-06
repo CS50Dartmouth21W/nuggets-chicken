@@ -8,6 +8,7 @@ typedef struct player {
     int row;
     int col;
     int gold;
+    int id;
     addr_t addr;
     game_t *game;
     char *visibility[];

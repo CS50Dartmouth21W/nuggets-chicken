@@ -33,8 +33,10 @@ game_t *game_new(char *map[], int rows, int cols, int MaxPlayers, int TotalGold)
 void game_delete(game_t *game){
     for (int i = 0; i < game->rows; i++){
         free(game->map[i]);
+        free(game->goldcounts[i]);
     }
+    hashtable_delete(game->players, player_delete);
+    free(game->goldcounts);
     //TODO: FREE OTHER STUFF
     free(game);
 }
-
