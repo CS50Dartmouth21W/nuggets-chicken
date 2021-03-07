@@ -6,25 +6,7 @@
 #include "./game.h"
 #include "math.h"
 #include "./libcs50/hashtable.h"
-
-bool handleTimeout(void *arg);
-bool handleInput  (void *arg);
-bool handleMessage(void *arg, const addr_t from, const char *message);
-
-
-bool move(player_t *player, int dx, int dy);
-bool continuousMove(player_t *player, int dx, int dy);
-
-
-void sendOK(player_t *player);
-void sendGridInfo(player_t *player);
-void sendGoldInfo(player_t *player, int n);
-void sendDisplay(player_t *player);
-
-player_t *getPlayerByAddr(game_t *game, const addr_t addr);
-static void find_player(void *arg, const char *key, void *item);
-static void sort_players(void *arg, const char *key, void *item);
-static void broadcast(void *arg, const char *key, void *item);
+#include "communication.h"
 
 void quit(const addr_t addr, const char *reason){
     char quitMessage[sizeof(char)*strlen(reason) + 6]; 
@@ -52,7 +34,6 @@ bool handleMessage(void *arg, const addr_t from, const char *message){
 
     game_t *game = (game_t *) arg;
 
-    printf("message:  %s\n", message);
     // parse message
     char *cmd = strtok(message, " ");
     char *messageArg = strtok(NULL, " ");
@@ -67,17 +48,24 @@ bool handleMessage(void *arg, const addr_t from, const char *message){
             }else{
                 hashtable_insert(game->players, messageArg, player);
                 game->playersJoined++;
+
                 sendOK(player);
                 sendGridInfo(player);
                 sendGoldInfo(player, 0);
-                sendDisplay(player); 
+                sendDisplay(player);
             }
         } else {
             quit(from, "Game is full: no more players can join.");
         }
-
+    } else if(strcmp(cmd, "SPECTATE") == 0){
+        // add a spectator
+        if(game->hasSpectator){
+            quit(from, "")
+        } else{
+            addSpectator(game, from);
+        }
+    
     } else if(strcmp(cmd, "KEY") == 0){
-
         player_t *player = getPlayerByAddr(game, from);
         
         if(strcmp(messageArg,"") == 0){
@@ -87,7 +75,17 @@ bool handleMessage(void *arg, const addr_t from, const char *message){
         switch(messageArg[0]){
         case 'Q':
             // quit game
-            quit(from, "Thanks for Playing");
+            if(game->hasSpectator && 
+                message_eqAddr(game->spectatorAddr,from)){
+                // coming from a spectator
+                game->hasSpectator = false;
+                game->spectatorAddr = NULL;
+                quit(from, "Thanks for Watching");
+            }else{
+                // coming from a player
+                quit(from, "Thanks for Playing");
+            }
+            game->playersJoined--;
             return true;
 
         // singular move 
@@ -180,7 +178,6 @@ bool handleMessage(void *arg, const addr_t from, const char *message){
  */
 bool move(player_t *player, int dx, int dy){
     // TODO: check if is spectator or player
-    printf("\n%s\n",player->name);
     game_t *game = player->game;
     int newrow = player->row - dy;
     int newcol = player->col + dx;
@@ -189,13 +186,12 @@ bool move(player_t *player, int dx, int dy){
     printf("new row: %d\n", newrow);
     printf("new col: %d\n", newcol);
     printf("CHARACTER IS: %c\n", c);
-    printf("\n");
     
     if((newrow >= 0 || newcol >= 0 || newrow < game->rows || newcol < game->cols)
         && (c == '*' || c == '.' || c == '#')){
 
         game->map[player->row][player->col] = '.';
-        game->map[newrow][newcol] = '@';
+        game->map[newrow][newcol] = player->(char)(player->id + 'A');
         player->row = newrow;
         player->col = newcol;
 
@@ -207,6 +203,7 @@ bool move(player_t *player, int dx, int dy){
             sendGoldInfo(player, newGold);
         }
         return true;
+
     } else{
         return false;
     }
@@ -242,7 +239,6 @@ void sendGridInfo(player_t *player){
 void sendGoldInfo(player_t *player, int n){
     int p = player->gold;
     int r = player->game->TotalGoldLeft;
-
     int numDigits = 7 + getNumDigits(n) + getNumDigits(p) + getNumDigits(r);
     
     char *goldInfo[numDigits];
@@ -270,7 +266,7 @@ void sendGameOver(addr_t addr, game_t *game){
 
     hashtable_iterate(game->players, sorted, sort_players);
     
-    char* message[11 + game->MaxPlayers * 24];
+    char message[11 + game->MaxPlayers * 24];
     strcat(message, "GAME OVER:\n");
     
     for (int i = 0; i<game->MaxPlayers; i++){
@@ -279,11 +275,13 @@ void sendGameOver(addr_t addr, game_t *game){
             break;
         }
 
-        char *line[24];
+        char line[24];
+        printf("%c %d %s\n", (char)('A' + i), player->gold, player->name);
         // Here are the values for the printing format
         // number can't be more than 10 chars
         // first 10 letters of real name
         sprintf(line, "%c %10d %10s\n", (char)('A' + i), player->gold, player->name); 
+        printf("%s", line);
         strcat(message, line);
     }
     printf("%s\n", message);
@@ -300,10 +298,9 @@ typedef struct htSearch {
     addr_t addr;
 } htSearch_t;
 
-player_t *getPlayerByAddr(game_t *game, const addr_t addr){
+player_t* getPlayerByAddr(game_t *game, const addr_t addr){
     htSearch_t *obj = malloc(sizeof(htSearch_t));
     obj->addr = addr;
-    obj->result = NULL;
 
     hashtable_iterate(game->players, obj, find_player);
     
@@ -315,8 +312,10 @@ player_t *getPlayerByAddr(game_t *game, const addr_t addr){
 
 static void find_player(void *arg, const char *key, void *item){
     htSearch_t *search = (htSearch_t *) arg;
-    if(message_eqAddr(search->addr, ((player_t *) item)->addr)){
-        search->result = item;
+    player_t *player = (player_t *) item;
+
+    if(message_eqAddr(search->addr, player->addr)){
+        search->result = player;
     }
 }
 

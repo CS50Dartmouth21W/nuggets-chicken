@@ -2,6 +2,7 @@
 #define __GAME_H
 #include <stdbool.h>
 #include "./libcs50/hashtable.h"
+#include "./support/message.h"
 
 //typedef struct game game_t;
 typedef struct game {
@@ -9,6 +10,7 @@ typedef struct game {
     int cols;
     int rows;
     bool hasSpectator;
+    addr_t *spectatorAddr;
     int playersJoined;
     int MaxPlayers;
     int TotalGoldLeft;
