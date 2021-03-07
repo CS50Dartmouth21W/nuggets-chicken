@@ -3,7 +3,7 @@
 #include "./libcs50/hashtable.h"
 #include "./game.h"
 #include "./player.h"
-#include "communication.c"
+#include "./communication.h"
 
 // initializes a game struct
 game_t *game_new(char *map[], int rows, int cols, int MaxPlayers, int TotalGold) {
@@ -15,7 +15,6 @@ game_t *game_new(char *map[], int rows, int cols, int MaxPlayers, int TotalGold)
     game->goldcounts = malloc((rows + 1) * sizeof(int *));
 
     game->spectatorAddr = NULL;
-    game->hasSpectator = false;
 
     for (int i = 0; i < rows; i++){
         game->map[i] = map[i];
@@ -44,11 +43,10 @@ void game_delete(game_t *game){
     free(game);
 }
 
-void addSpectator(game_t *game, const addr_t addr){
-    if(game->hasSpectator){
+void addSpectator(game_t *game, addr_t *addr){
+    if(game->spectatorAddr != NULL){
         // tell current spectator to quit
-        quit(game->spectatorAddr, )
+        quit(game->spectatorAddr, "You have been replaced by a new spectator.");
     }
-    game->hasSpectator = true;
     game->spectatorAddr = addr;
 }

@@ -10,19 +10,12 @@
 #include "math.h"
 #include "./libcs50/hashtable.h"
 
-bool handleTimeout(void *arg);
-bool handleInput  (void *arg);
-bool handleMessage(void *arg, const addr_t from, const char *message);
-
-
-bool move(player_t *player, int dx, int dy);
-bool continuousMove(player_t *player, int dx, int dy);
-
 
 void sendOK(player_t *player);
-void sendGridInfo(player_t *player);
-void sendGoldInfo(player_t *player, int n);
-void sendDisplay(player_t *player);
+
+void sendGridInfo(game_t *game, addr_t *addr);
+void sendGoldInfo(game_t *game, player_t *player, addr_t *addr, int n);
+void sendDisplay(game_t *game, player_t *player, addr_t *addr);
 
 player_t *getPlayerByAddr(game_t *game, const addr_t addr);
 static void find_player(void *arg, const char *key, void *item);

@@ -9,7 +9,6 @@ typedef struct game {
     bool isover;
     int cols;
     int rows;
-    bool hasSpectator;
     addr_t *spectatorAddr;
     int playersJoined;
     int MaxPlayers;
@@ -24,5 +23,6 @@ typedef struct game {
 
 game_t *game_new(char *map[], int rows, int cols, int MaxPlayers, int TotalGold);
 void game_delete(game_t *game);
+void addSpectator(game_t *game, addr_t *addr);
 
 #endif

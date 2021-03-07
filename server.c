@@ -11,7 +11,7 @@
 #include <string.h>
 #include "file.h"
 #include "./libcs50/hashtable.h"
-#include "./communication.c"
+#include "./movement.c"
 #include "./support/message.h"
 #include "./support/log.h"
 #include "./game.h"

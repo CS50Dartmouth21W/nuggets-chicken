@@ -1,5 +1,11 @@
 START OF LOG
-player on port 54701
+player on port 34945
 spectate
-QUIT message received: QUIT Thanks for Playing
+GRID message received: GRID 5 14
+displayStart: Success
+wRows = 63
+wCols = 100
+GOLD message received: GOLD 0 0 250
+DISPLAY message received
+QUIT message received: QUIT Thanks for Watching
 END OF LOG
