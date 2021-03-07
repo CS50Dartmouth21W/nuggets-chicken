@@ -20,9 +20,12 @@ void sendOK(player_t *player);
 void sendGridInfo(player_t *player);
 void sendGoldInfo(player_t *player, int n);
 void sendDisplay(game_t *game);
+void sendGameOver(addr_t addr, game_t *game);
 
 player_t *getPlayerByAddr(game_t *game, const addr_t addr);
+player_t *getPlayerByChar(game_t *game, char c);
 static void find_player(void *arg, const char *key, void *item);
+static void find_player2(void *arg, const char *key, void *item);
 static void sort_players(void *arg, const char *key, void *item);
 static void broadcast(void *arg, const char *key, void *item);
 static void broadcastDisplay(void *arg, const char *key, void *item);
@@ -194,7 +197,8 @@ bool move(player_t *player, int dx, int dy){
     printf("\n");
     
     if((newrow >= 0 || newcol >= 0 || newrow < game->rows || newcol < game->cols)
-        && (c == '*' || c == '.' || c == '#')){
+        && c != ' ' && c != '-' && c != '|' && c != '+'){
+        
         // check whether player is in room or not before replacing character
         if (player->inRoom == 1) {
             game->map[player->row][player->col] = '.';
@@ -205,9 +209,20 @@ bool move(player_t *player, int dx, int dy){
         // update whether player's new location will be in room or hallway
         if (game->map[newrow][newcol] == '.') {
             player->inRoom = 1;
-        } else {
+        } else if (game->map[newrow][newcol] == '#'){
             player->inRoom = 0;
+        } else if (game->map[newrow][newcol] == '*'){
+            player->inRoom = 1;
+        } else {
+            player_t *player2 = getPlayerByChar(game, c);
+            int store = player->inRoom;
+            player->inRoom = player2->inRoom;
+            player2->inRoom = store;
+            game->map[player->row][player->col] = c;
+            player2->row = player->row;
+            player2->col = player->col;
         }
+
         game->map[newrow][newcol] = player->letter;
         player->row = newrow;
         player->col = newcol;
@@ -219,6 +234,7 @@ bool move(player_t *player, int dx, int dy){
             game->TotalGoldLeft -= newGold;
             sendGoldInfo(player, newGold);
         }
+
         return true;
     } else{
         return false;
@@ -235,7 +251,7 @@ bool continuousMove(player_t *player, int dx, int dy){
 }
 
 void sendOK(player_t *player){
-    char *OkMessage[5];
+    char OkMessage[5];
     sprintf(OkMessage, "OK %c", player->letter);
     message_send(player->addr, OkMessage);
 }
@@ -245,7 +261,7 @@ void sendGridInfo(player_t *player){
     int cols = player->game->cols;
     int numDigits = 6 + getNumDigits(rows) + getNumDigits(cols);
     
-    char *gridInfo[numDigits];
+    char gridInfo[numDigits];
     // Note to self: check for buffer overflow
     sprintf(gridInfo, "GRID %d %d", rows, cols);
     message_send(player->addr, gridInfo);
@@ -258,7 +274,7 @@ void sendGoldInfo(player_t *player, int n){
 
     int numDigits = 7 + getNumDigits(n) + getNumDigits(p) + getNumDigits(r);
     
-    char *goldInfo[numDigits];
+    char goldInfo[numDigits];
     sprintf(goldInfo, "GOLD %d %d %d", n, p, r);
     message_send(player->addr, goldInfo);
 }
@@ -266,7 +282,7 @@ void sendGoldInfo(player_t *player, int n){
 void sendDisplay(game_t *game){
     int rows = game->rows;
     int cols = game->cols;
-    char *displayInfo[8 + (rows+1) * cols];
+    char displayInfo[8 + (rows+1) * cols];
     strcpy(displayInfo, "DISPLAY\n");
 
     for(int i = 0; i<rows; i++){
@@ -282,7 +298,7 @@ void sendGameOver(addr_t addr, game_t *game){
 
     hashtable_iterate(game->players, sorted, sort_players);
     
-    char* message[200 + game->MaxPlayers * 24];
+    char message[200 + game->MaxPlayers * 24];
     strcat(message, "GAME OVER:\n");
     
     for (int i = 0; i<game->MaxPlayers; i++){
@@ -333,6 +349,31 @@ static void find_player(void *arg, const char *key, void *item){
     }
 }
 
+typedef struct htSearch2 {
+    player_t *result;
+    char car;
+} htSearch2_t;
+
+player_t *getPlayerByChar(game_t *game, char c){
+    htSearch2_t *obj = malloc(sizeof(htSearch2_t));
+    obj->car = c;
+    obj->result = NULL;
+
+    hashtable_iterate(game->players, obj, find_player2);
+    
+    //free(obj->addr);
+    player_t *result = obj->result;
+    free(obj); 
+    return result;
+}
+
+static void find_player2(void *arg, const char *key, void *item){
+    htSearch2_t *search = (htSearch2_t *) arg;
+    if( search->car == ((player_t *) item)->letter){
+        search->result = item;
+    }
+}
+
 static void sort_players(void *arg, const char *key, void *item){
     player_t **sorted = (player_t *) arg;
     player_t *player = (player_t *) item;
@@ -350,6 +391,3 @@ static void broadcastDisplay(void *arg, const char *key, void *item){
     player_t *player = (player_t *) item;    
     message_send(player->addr, display);
 }
-
-
-
