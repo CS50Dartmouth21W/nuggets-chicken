@@ -9,6 +9,11 @@
 #include "communication.h"
 #include "./visibility.c"
 
+
+int getNumDigits(int a){
+    return a == 0 ? 1 : (int)(ceil(log10(a))+1);
+}
+
 void quit(const addr_t addr, const char *reason){
     char quitMessage[sizeof(char)*strlen(reason) + 6]; 
     sprintf(quitMessage, "QUIT %s", reason);
@@ -94,13 +99,13 @@ void sendGameOver(game_t *game, addr_t addr){
     char message[11 + game->MaxPlayers * 25];
     strcat(message, "GAME OVER:\n");
     
-    for (int i = 0; i<game->MaxPlayers; i++){
+    for (int i = 0; i<game->playersJoined; i++){
         player_t *player = sorted[i];
         if(player == NULL){
             break;
         }
 
-        char line[24];
+        char line[26];
         printf("%c %d %s\n", (char)('A' + i), player->gold, player->name);
         // Here are the values for the printing format
         // number can't be more than 10 chars
@@ -116,10 +121,6 @@ void sendGameOver(game_t *game, addr_t addr){
     if(game->spectatorAddr != NULL){
         quit(*(game->spectatorAddr), message);
     }
-}
-
-int getNumDigits(int a){
-    return a == 0 ? 1 : (int)(ceil(log10(a))+1);
 }
 
 // struct used solely for searching
@@ -149,8 +150,33 @@ void find_player(void *arg, const char *key, void *item){
     }
 }
 
-void sort_players(void *arg, const char *key, void *item){
-    player_t **sorted = (player_t **) arg;
+typedef struct htSearch2 {
+    player_t *result;
+    char car;
+} htSearch2_t;
+
+player_t *getPlayerByChar(game_t *game, char c){
+    htSearch2_t *obj = malloc(sizeof(htSearch2_t));
+    obj->car = c;
+    obj->result = NULL;
+
+    hashtable_iterate(game->players, obj, find_player2);
+    
+    //free(obj->addr);
+    player_t *result = obj->result;
+    free(obj); 
+    return result;
+}
+
+static void find_player2(void *arg, const char *key, void *item){
+    htSearch2_t *search = (htSearch2_t *) arg;
+    if( search->car == ((player_t *) item)->letter){
+        search->result = item;
+    }
+}
+
+static void sort_players(void *arg, const char *key, void *item){
+    player_t **sorted = (player_t *) arg;
     player_t *player = (player_t *) item;
     sorted[player->id] = player;
 }

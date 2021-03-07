@@ -24,7 +24,10 @@ void sendGameOver(game_t *game, addr_t addr);
 int getNumDigits(int a);
 
 player_t *getPlayerByAddr(game_t *game, const addr_t addr);
+player_t *getPlayerByChar(game_t *game, char c);
+
 void find_player(void *arg, const char *key, void *item);
+void find_player2(void *arg, const char *key, void *item);
 void sort_players(void *arg, const char *key, void *item);
 void broadcast(void *arg, const char *key, void *item);
 
