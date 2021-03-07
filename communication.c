@@ -10,7 +10,7 @@
 
 static void find_player(void *arg, const char *key, void *item);
 static void find_player2(void *arg, const char *key, void *item);
-static void sort_players(void *arg, const char *key, void *item);
+static void create_message(void *arg, const char *key, void *item);
 static void broadcast(void *arg, const char *key, void *item);
 
 int getNumDigits(int a){
@@ -93,32 +93,16 @@ void sendDisplay(game_t *game, player_t *player, addr_t *addr){
 }
 
 void sendGameOver(addr_t addr, game_t *game){
-    player_t *sorted[game->MaxPlayers];
-
-    hashtable_iterate(game->players, sorted, sort_players);
     
-    char message[11 + game->MaxPlayers * 24];
+    char *message = malloc( sizeof(char) * 500 );
     strcat(message, "GAME OVER:\n");
-    
-    for (int i = 0; i<game->playersJoined; i++){
-        player_t *player = sorted[i];
-        if(player == NULL){
-            break;
-        }
-
-        char line[26];
-        printf("%c %d %s\n", (char)('A' + i), player->gold, player->name);
-        // Here are the values for the printing format
-        // number can't be more than 10 chars
-        // first 10 letters of real name
-        sprintf(line, "%c %10d %10s\n", (char)('A' + i), player->gold, player->name); 
-        printf("%s", line);
-        strcat(message, line);
-    }
+    hashtable_iterate(game->players, message, create_message);
     printf("%s\n", message);
-    hashtable_iterate(game->players, message, broadcast);
+    char message2[700];
+    strcpy(message2, message);
+    free(message);
+    hashtable_iterate(game->players, message2, broadcast);
     // send message to spectator
-    
     if(game->spectatorAddr != NULL){
         quit(*(game->spectatorAddr), message);
     }
@@ -176,10 +160,13 @@ static void find_player2(void *arg, const char *key, void *item){
     }
 }
 
-static void sort_players(void *arg, const char *key, void *item){
-    player_t **sorted = (player_t *) arg;
+static void create_message(void *arg, const char *key, void *item){
+    char *message = (char *) arg;
     player_t *player = (player_t *) item;
-    sorted[player->id] = player;
+    char line[26];
+    sprintf(line, "%c %10d %10s\n", player->letter, player->gold, key); 
+    printf("%s", line);
+    strcat(message, line);
 }
 
 static void broadcast(void *arg, const char *key, void *item){
