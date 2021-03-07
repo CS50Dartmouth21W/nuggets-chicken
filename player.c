@@ -16,6 +16,15 @@ player_t *player_new(char *name, game_t *game, const addr_t addr) {
     player->game = game;
     player->id = game->playersJoined;
     game->playersJoined++;
+    
+    player->visibility = malloc((game->rows + 1) * sizeof(char *));
+    for(int i = 0; i<game->rows; i++){
+        player->visibility = malloc((game->cols + 1) * sizeof(char*));
+        for(int j = 0; j<game->cols; j++){
+            player->visibility[i][j] = ' ';
+
+        }
+    }
 
     while (1) {
         int row = rand() % (game->rows);    // random number from 0 to row-1
@@ -25,7 +34,8 @@ player_t *player_new(char *name, game_t *game, const addr_t addr) {
         if (game->map[row][col] == '.') {
             player->row = row;
             player->col = col;
-            game->map[row][col] = '@';
+            game->map[row][col] = (char)(player->id + 'A');
+            player->visibility[row][col] = (char)(player->id + 'A');
             break;
         }
     }

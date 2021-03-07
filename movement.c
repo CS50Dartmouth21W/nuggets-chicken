@@ -4,7 +4,6 @@
 #include "./support/message.h"
 #include "./player.h"
 #include "./game.h"
-#include "math.h"
 #include "./libcs50/hashtable.h"
 #include "communication.h"
 
@@ -38,7 +37,8 @@ bool handleMessage(void *arg, const addr_t from, const char *message){
     char *messageArg = strtok(NULL, " ");
 
     if(strcmp(cmd,"PLAY") == 0){
-        // add a new player 
+        // ADD A NEW PLAYER
+
         player_t *player = player_new(messageArg, game, from);
 
         if(game->playersJoined + 1 <= game->MaxPlayers){
@@ -49,21 +49,24 @@ bool handleMessage(void *arg, const addr_t from, const char *message){
                 game->playersJoined++;
 
                 sendOK(player);
-                sendGridInfo(game, &from);
-                sendGoldInfo(game, player, &from, 0);
-                sendDisplay(game, player, &from);
+                sendGridInfo(game, from);
+                sendGoldInfo(game, player, from, 0);
+                sendDisplay(game, player, from);
+                updateVisibility(player);
             }
         } else {
             quit(from, "Game is full: no more players can join.");
         }
     } else if(strcmp(cmd, "SPECTATE") == 0){
-        // add a spectator
-        addSpectator(game, &from);
-        sendGridInfo(game, &from);
-        sendGoldInfo(game, NULL, &from, 0);
+        // ADD A SPECTATOR
+        addSpectator(game, from);
+        sendGridInfo(game, from);
+        sendGoldInfo(game, NULL, from, 0);
 
-        sendDisplay(game, NULL, &from);
+        sendDisplay(game, NULL, from);
     } else if(strcmp(cmd, "KEY") == 0){
+        // MOVE A PLAYER
+        // OR QUIT
         player_t *player = getPlayerByAddr(game, from);
         
         if(strcmp(messageArg,"") == 0){
@@ -74,7 +77,8 @@ bool handleMessage(void *arg, const addr_t from, const char *message){
         case 'Q':
             // quit game
             quitGame(game, from);
-            return false;
+            // if nobody left, game over
+            return game->playersJoined == 0;
 
         // singular move 
         case 'h':
@@ -143,11 +147,12 @@ bool handleMessage(void *arg, const addr_t from, const char *message){
             // move down and right
             continuousMove(player, 1, -1);
             break;
+        
          }
 
-         sendDisplay(game, player, &from);
+         sendDisplay(game, player, from);
          if(game->TotalGoldLeft == 0){
-            sendGameOver(player->addr, game);
+            sendGameOver(game, player->addr);
             return true;
          }
 
@@ -188,8 +193,9 @@ bool move(player_t *player, int dx, int dy){
             player->gold += newGold; 
             game->goldcounts[newrow][newcol] = 0;
             game->TotalGoldLeft -= newGold;
-            sendGoldInfo(game, player, &(player->addr), newGold);
+            sendGoldInfo(game, player, player->addr, newGold);
         }
+        updateVisibility(player);
         return true;
 
     } else{

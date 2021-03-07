@@ -23,6 +23,6 @@ typedef struct game {
 
 game_t *game_new(char *map[], int rows, int cols, int MaxPlayers, int TotalGold);
 void game_delete(game_t *game);
-void addSpectator(game_t *game, addr_t *addr);
+void addSpectator(game_t *game, addr_t addr);
 
 #endif
