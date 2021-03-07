@@ -5,10 +5,9 @@
 #include <stdbool.h>
 
 void updateVisibility(player_t *player);
-
 void dfs(int row, int col, int pr, int pc, char** visibility, char** map, bool** visited);
-
 bool isVisible(int row, int col, int pr, int pc, char** visibility, char** map, bool** visited);
+
 // updates a player's visibility based off of a new point 
 // (x,y) that it encouters. We use the game map to figure out the new visibility
 //
@@ -21,13 +20,25 @@ void updateVisibility(player_t *player){
     int rows = game->rows;
     int cols = game->cols;
 
-    bool visited[rows][cols];
-
+    bool **visited;
+    for(int i = 0; i<rows; i++){
+        for(int j = 0; j<cols; j++){
+            visited[i][j] = false;
+        }
+    }
 
     dfs(pr, pc, pr, pc, visibility, map, visited); 
 }
 
-void dfs(int row, int col, int pr, int pc, char** visibility, char** map, bool** visited){
+void dfs(int row, int col, int pr, int pc, char** visibility, char** map, bool* visited[]){
+    printf("row: %d\n", row);
+    printf("col: %d\n", col);
+    int rows = sizeof(visited)/sizeof(visited[0]);
+    int cols = sizeof(visited[0])/sizeof(visited[0][0]);
+
+    printf("rows: %d\n", rows);
+    printf("cols: %d\n", cols);
+    printf("%d\n", visited[row][col]);
 
     visited[row][col] = true;
 
@@ -46,7 +57,7 @@ void dfs(int row, int col, int pr, int pc, char** visibility, char** map, bool**
 bool isVisible(int row, int col, int pr, int pc, char** visibility, char** map, bool** visited){
 
     int rows = sizeof(visited)/sizeof(visited[0]);
-    int cols = sizeof(visited[0] )/sizeof(visited[0][0]);
+    int cols = sizeof(visited[0])/sizeof(visited[0][0]);
 
     char c = map[row][col];
     if(row < 0 || col < 0 || row >= rows || col >= cols){ 

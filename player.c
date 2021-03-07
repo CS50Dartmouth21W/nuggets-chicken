@@ -19,10 +19,9 @@ player_t *player_new(char *name, game_t *game, const addr_t addr) {
     
     player->visibility = malloc((game->rows + 1) * sizeof(char *));
     for(int i = 0; i<game->rows; i++){
-        player->visibility = malloc((game->cols + 1) * sizeof(char*));
+        player->visibility[i] = malloc((game->cols + 1) * sizeof(char));
         for(int j = 0; j<game->cols; j++){
             player->visibility[i][j] = ' ';
-
         }
     }
 
