@@ -176,10 +176,33 @@ bool move(player_t *player, int dx, int dy){
     printf("CHARACTER IS: %c\n", c);
     
     if((newrow >= 0 || newcol >= 0 || newrow < game->rows || newcol < game->cols)
-        && (c == '*' || c == '.' || c == '#')){
+        && c != ' ' && c != '-' && c != '|' && c != '+'){
+        
+        // check whether player is in room or not before replacing character
+        if (player->inRoom == 1) {
+            game->map[player->row][player->col] = '.';
+        } else {
+            game->map[player->row][player->col] = '#';
+        }
 
-        game->map[player->row][player->col] = '.';
-        game->map[newrow][newcol] = (char)(player->id + 'A');
+        // update whether player's new location will be in room or hallway
+        if (game->map[newrow][newcol] == '.') {
+            player->inRoom = 1;
+        } else if (game->map[newrow][newcol] == '#'){
+            player->inRoom = 0;
+        } else if (game->map[newrow][newcol] == '*'){
+            player->inRoom = 1;
+        } else {
+            player_t *player2 = getPlayerByChar(game, c);
+            int store = player->inRoom;
+            player->inRoom = player2->inRoom;
+            player2->inRoom = store;
+            game->map[player->row][player->col] = c;
+            player2->row = player->row;
+            player2->col = player->col;
+        }
+
+        game->map[newrow][newcol] = player->letter;
         player->row = newrow;
         player->col = newcol;
 
@@ -190,8 +213,8 @@ bool move(player_t *player, int dx, int dy){
             game->TotalGoldLeft -= newGold;
             sendGoldInfo(game, player, &(player->addr), newGold);
         }
-        return true;
 
+        return true;
     } else{
         return false;
     }
@@ -205,4 +228,3 @@ bool continuousMove(player_t *player, int dx, int dy){
         return false;
     }
 }
-

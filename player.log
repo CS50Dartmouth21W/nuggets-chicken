@@ -1,23 +1,20 @@
 START OF LOG
-player on port 56783
-interactive player mode; name 'alex'
-OK message received: OK A
-GRID message received: GRID 5 14
+player on port 40030
+interactive player mode; name 'p1'
+OK message received: OK B
+GRID message received: GRID 21 79
 displayStart: Success
-wRows = 63
-wCols = 100
+wRows = 66
+wCols = 138
 GOLD message received: GOLD 0 0 250
 DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
+DQUIT message received: QUIT #########    +-----------+             
+     |......|               |...0é/$kUGAME OVER:
+A          0           
+B        250           
+
+END OF LOG
+PLAY message received
 DISPLAY message received
 DISPLAY message received
 DISPLAY message received
@@ -28,3 +25,9 @@ DISPLAY message received
 DISPLAY message received
 GOLD message received: GOLD 250 250 0
 DISPLAY message received
+QUIT message received: QUIT #########    +-----------+             
+     |......|               |...0é/$kUGAME OVER:
+A          0           
+B        250           
+
+END OF LOG

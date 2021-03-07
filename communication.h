@@ -16,10 +16,9 @@ void sendOK(player_t *player);
 void sendGridInfo(game_t *game, addr_t *addr);
 void sendGoldInfo(game_t *game, player_t *player, addr_t *addr, int n);
 void sendDisplay(game_t *game, player_t *player, addr_t *addr);
-
+void quit(const addr_t addr, const char *reason);
 player_t *getPlayerByAddr(game_t *game, const addr_t addr);
-static void find_player(void *arg, const char *key, void *item);
-static void sort_players(void *arg, const char *key, void *item);
-static void broadcast(void *arg, const char *key, void *item);
+player_t *getPlayerByChar(game_t *game, char c);
+
 
 #endif

@@ -8,6 +8,15 @@
 #include "./libcs50/hashtable.h"
 #include "communication.h"
 
+static void find_player(void *arg, const char *key, void *item);
+static void find_player2(void *arg, const char *key, void *item);
+static void sort_players(void *arg, const char *key, void *item);
+static void broadcast(void *arg, const char *key, void *item);
+
+int getNumDigits(int a){
+    return a == 0 ? 1 : (int)(ceil(log10(a))+1);
+}
+
 void quit(const addr_t addr, const char *reason){
     char quitMessage[sizeof(char)*strlen(reason) + 6]; 
     sprintf(quitMessage, "QUIT %s", reason);
@@ -29,7 +38,7 @@ void quitGame(game_t *game, addr_t addr){
 }
 
 void sendOK(player_t *player){
-    char *OkMessage[5];
+    char OkMessage[5];
     sprintf(OkMessage, "OK %c", (char)(player->id + 'A'));
     message_send(player->addr, OkMessage);
 }
@@ -40,7 +49,7 @@ void sendGridInfo(game_t *game, addr_t *addr){
     int cols = game->cols;
     int numDigits = 6 + getNumDigits(rows) + getNumDigits(cols);
     
-    char *gridInfo[numDigits];
+    char gridInfo[numDigits];
     // Note to self: check for buffer overflow
     sprintf(gridInfo, "GRID %d %d", rows, cols);
     message_send(*addr, gridInfo);
@@ -55,7 +64,7 @@ void sendGoldInfo(game_t *game, player_t *player, addr_t *addr, int n){
     int r = game->TotalGoldLeft;
     int numDigits = 7 + getNumDigits(n) + getNumDigits(p) + getNumDigits(r);
     
-    char *goldInfo[numDigits];
+    char goldInfo[numDigits];
     sprintf(goldInfo, "GOLD %d %d %d", n, p, r);
     message_send(*addr, goldInfo);
 }
@@ -64,7 +73,7 @@ void sendGoldInfo(game_t *game, player_t *player, addr_t *addr, int n){
 void sendDisplay(game_t *game, player_t *player, addr_t *addr){
     int rows = game->rows;
     int cols = game->cols;
-    char *displayInfo[8 + (rows+1) * cols];
+    char displayInfo[8 + (rows+1) * cols];
     strcpy(displayInfo, "DISPLAY\n");
 
     // have different for loops for spectator and player 
@@ -91,13 +100,13 @@ void sendGameOver(addr_t addr, game_t *game){
     char message[11 + game->MaxPlayers * 24];
     strcat(message, "GAME OVER:\n");
     
-    for (int i = 0; i<game->MaxPlayers; i++){
+    for (int i = 0; i<game->playersJoined; i++){
         player_t *player = sorted[i];
         if(player == NULL){
             break;
         }
 
-        char line[24];
+        char line[26];
         printf("%c %d %s\n", (char)('A' + i), player->gold, player->name);
         // Here are the values for the printing format
         // number can't be more than 10 chars
@@ -113,10 +122,6 @@ void sendGameOver(addr_t addr, game_t *game){
     if(game->spectatorAddr != NULL){
         quit(*(game->spectatorAddr), message);
     }
-}
-
-int getNumDigits(int a){
-    return a == 0 ? 1 : (int)(ceil(log10(a))+1);
 }
 
 // struct used solely for searching
@@ -143,6 +148,31 @@ static void find_player(void *arg, const char *key, void *item){
 
     if(message_eqAddr(search->addr, player->addr)){
         search->result = player;
+    }
+}
+
+typedef struct htSearch2 {
+    player_t *result;
+    char car;
+} htSearch2_t;
+
+player_t *getPlayerByChar(game_t *game, char c){
+    htSearch2_t *obj = malloc(sizeof(htSearch2_t));
+    obj->car = c;
+    obj->result = NULL;
+
+    hashtable_iterate(game->players, obj, find_player2);
+    
+    //free(obj->addr);
+    player_t *result = obj->result;
+    free(obj); 
+    return result;
+}
+
+static void find_player2(void *arg, const char *key, void *item){
+    htSearch2_t *search = (htSearch2_t *) arg;
+    if( search->car == ((player_t *) item)->letter){
+        search->result = item;
     }
 }
 

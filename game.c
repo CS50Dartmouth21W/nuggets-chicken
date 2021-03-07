@@ -46,7 +46,7 @@ void game_delete(game_t *game){
 void addSpectator(game_t *game, addr_t *addr){
     if(game->spectatorAddr != NULL){
         // tell current spectator to quit
-        quit(game->spectatorAddr, "You have been replaced by a new spectator.");
+        quit(*game->spectatorAddr, "You have been replaced by a new spectator.");
     }
     game->spectatorAddr = addr;
 }
