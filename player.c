@@ -16,6 +16,14 @@ player_t *player_new(char *name, game_t *game, const addr_t addr) {
     player->game = game;
     player->inRoom = 1;
     player->id = game->playersJoined;
+    
+    player->visibility = malloc((game->rows + 1) * sizeof(char *));
+    for(int i = 0; i<game->rows; i++){
+        player->visibility[i] = malloc((game->cols + 1) * sizeof(char));
+        for(int j = 0; j<game->cols; j++){
+            player->visibility[i][j] = ' ';
+        }
+    }
     player->letter = (char)(player->id + 'A');
 
     while (1) {
@@ -27,6 +35,7 @@ player_t *player_new(char *name, game_t *game, const addr_t addr) {
             player->row = row;
             player->col = col;
             game->map[row][col] = player->letter;
+            player->visibility[row][col] = player->letter;
             break;
         }
     }

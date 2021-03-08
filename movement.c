@@ -4,7 +4,6 @@
 #include "./support/message.h"
 #include "./player.h"
 #include "./game.h"
-#include "math.h"
 #include "./libcs50/hashtable.h"
 #include "communication.h"
 
@@ -13,6 +12,9 @@ bool handleInput  (void *arg);
 bool handleMessage(void *arg, const addr_t from, const char *message);
 bool move(player_t *player, int dx, int dy);
 bool continuousMove(player_t *player, int dx, int dy);
+static void find_player3(void *arg, const char *key, void *item);
+int nameconflict(game_t *game, char* name);
+
 
 bool handleTimeout(void *arg){
     return true;
@@ -41,32 +43,36 @@ bool handleMessage(void *arg, const addr_t from, const char *message){
     printf("messageArg: %s\n", messageArg);
 
     if(strcmp(cmd,"PLAY") == 0){
-        // add a new player 
-        player_t *player = player_new(messageArg, game, from);
+        // ADD A NEW PLAYER
 
         if(game->playersJoined + 1 <= game->MaxPlayers){
-            if(strcmp(messageArg, "") == 0){
+            printf("%d\n", game->playersJoined);
+            if(nameconflict(game, messageArg) != 0){
                 quit(from, "Sorry - you must provide player's name.");
             }else{
+                player_t *player = player_new(messageArg, game, from);
                 hashtable_insert(game->players, messageArg, player);
                 game->playersJoined++;
-
                 sendOK(player);
-                sendGridInfo(game, &from);
-                sendGoldInfo(game, player, &from, 0);
-                sendDisplay(game, player, &from);
+                sendGridInfo(game, from);
+                sendGoldInfo(game, player, from, 0);
+                sendDisplay(game, player, from);
+                updateVisibility(player);
             }
         } else {
             quit(from, "Game is full: no more players can join.");
         }
+        
     } else if(strcmp(cmd, "SPECTATE") == 0){
-        // add a spectator
-        addSpectator(game, &from);
-        sendGridInfo(game, &from);
-        sendGoldInfo(game, NULL, &from, 0);
+        // ADD A SPECTATOR
+        addSpectator(game, from);
+        sendGridInfo(game, from);
+        sendGoldInfo(game, NULL, from, 0);
 
-        sendDisplay(game, NULL, &from);
+        sendDisplay(game, NULL, from);
     } else if(strcmp(cmd, "KEY") == 0){
+        // MOVE A PLAYER
+        // OR QUIT
         player_t *player = getPlayerByAddr(game, from);
         
         if(strcmp(messageArg,"") == 0){
@@ -77,7 +83,8 @@ bool handleMessage(void *arg, const addr_t from, const char *message){
         case 'Q':
             // quit game
             quitGame(game, from);
-            return false;
+            // if nobody left, game over
+            return game->playersJoined == 0;
 
         // singular move 
         case 'h':
@@ -146,11 +153,12 @@ bool handleMessage(void *arg, const addr_t from, const char *message){
             // move down and right
             continuousMove(player, 1, -1);
             break;
+        
          }
 
-         sendDisplay(game, player, &from);
+         sendDisplay(game, player, from);
          if(game->TotalGoldLeft == 0){
-            sendGameOver(player->addr, game);
+            sendGameOver(game, player->addr);
             return true;
          }
 
@@ -214,9 +222,9 @@ bool move(player_t *player, int dx, int dy){
             player->gold += newGold; 
             game->goldcounts[newrow][newcol] = 0;
             game->TotalGoldLeft -= newGold;
-            sendGoldInfo(game, player, &(player->addr), newGold);
+            sendGoldInfo(game, player, player->addr, newGold);
         }
-
+        updateVisibility(player);
         return true;
     } else{
         return false;
@@ -229,5 +237,32 @@ bool continuousMove(player_t *player, int dx, int dy){
         return true;
     }else{
         return false;
+    }
+}
+
+typedef struct htSearch3 {
+    int result;
+    char* name;
+} htSearch3_t;
+
+int nameconflict(game_t *game, char* name){
+    htSearch3_t *obj = malloc(sizeof(htSearch3_t));
+    obj->name = name;
+    obj->result = 0;
+
+    hashtable_iterate(game->players, obj, find_player3);
+    
+    //free(obj->addr);
+    int result = obj->result;
+    free(obj);
+    printf("%d\n", result);
+    return result;
+}
+
+static void find_player3(void *arg, const char *key, void *item){
+    htSearch3_t *search = (htSearch3_t *) arg;
+    printf("%d\n", search->result);
+    if(strcmp(search->name, key) == 0){
+        search->result++;
     }
 }

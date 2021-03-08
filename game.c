@@ -37,16 +37,16 @@ void game_delete(game_t *game){
         free(game->map[i]);
         free(game->goldcounts[i]);
     }
-    hashtable_delete(game->players, player_delete);
+    hashtable_delete(game->players, (void (*)(void *)) player_delete);
     free(game->goldcounts);
     //TODO: FREE OTHER STUFF
     free(game);
 }
 
-void addSpectator(game_t *game, addr_t *addr){
+void addSpectator(game_t *game, addr_t addr){
     if(game->spectatorAddr != NULL){
         // tell current spectator to quit
-        quit(*game->spectatorAddr, "You have been replaced by a new spectator.");
+        quit(*(game->spectatorAddr), "You have been replaced by a new spectator.");
     }
-    game->spectatorAddr = addr;
+    game->spectatorAddr = &addr;
 }
