@@ -168,14 +168,14 @@ player_t *getPlayerByChar(game_t *game, char c){
     return result;
 }
 
-static void find_player2(void *arg, const char *key, void *item){
+void find_player2(void *arg, const char *key, void *item){
     htSearch2_t *search = (htSearch2_t *) arg;
     if( search->car == ((player_t *) item)->letter){
         search->result = item;
     }
 }
 
-static void sort_players(void *arg, const char *key, void *item){
+void sort_players(void *arg, const char *key, void *item){
     player_t **sorted = (player_t *) arg;
     player_t *player = (player_t *) item;
     sorted[player->id] = player;

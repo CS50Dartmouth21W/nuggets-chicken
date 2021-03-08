@@ -5,8 +5,12 @@
 #include <stdbool.h>
 
 void updateVisibility(player_t *player);
-void dfs(int row, int col, int pr, int pc, char** visibility, char** map, bool** visited);
-bool isVisible(int row, int col, int pr, int pc, char** visibility, char** map, bool** visited);
+void dfs(int r, int c, int pr, int pc, char** visibility, char** map, bool** visited, int rows, int cols);
+bool isVisible(int r, int c, int pr, int pc, char** visibility, char** map);
+bool isValid(int r, int c, int rows, int cols, bool** visited);
+
+int min(int a, int b);
+int max(int a, int b);
 
 // updates a player's visibility based off of a new point 
 // (x,y) that it encouters. We use the game map to figure out the new visibility
@@ -19,34 +23,28 @@ void updateVisibility(player_t *player){
     char **map = game->map; 
     int rows = game->rows;
     int cols = game->cols;
-
-    bool **visited;
+    
+    bool **visited = malloc(sizeof(bool *) * rows);
     for(int i = 0; i<rows; i++){
+        visited[i] = malloc(sizeof(bool) * cols);
         for(int j = 0; j<cols; j++){
             visited[i][j] = false;
         }
     }
-
-    dfs(pr, pc, pr, pc, visibility, map, visited); 
+    
+    dfs(pr, pc, pr, pc, visibility, map, visited, rows, cols);
+    visibility[pr][pc] = player->letter; 
 }
 
-void dfs(int row, int col, int pr, int pc, char** visibility, char** map, bool* visited[]){
-    printf("row: %d\n", row);
-    printf("col: %d\n", col);
-    int rows = sizeof(visited)/sizeof(visited[0]);
-    int cols = sizeof(visited[0])/sizeof(visited[0][0]);
+void dfs(int r, int c, int pr, int pc, char** visibility, char** map, bool** visited, int rows, int cols){
+    visited[r][c] = true;
 
-    printf("rows: %d\n", rows);
-    printf("cols: %d\n", cols);
-    printf("%d\n", visited[row][col]);
-
-    visited[row][col] = true;
-
-    for (int i = row-1; i <= row+1; i++){
-        for(int j = col-1; j <= col+1; j++){
+    for (int i = r-1; i <= r+1; i++){
+        for(int j = c-1; j <= c+1; j++){
             
-            if( !visited[i][j] && isVisible(i, j, pr, pc, visibility, map, visited)){
-                dfs(i, j, pr, pc, visibility, map, visited);
+            if( isValid(i, j, rows, cols, visited) && isVisible(i, j, pr, pc, visibility, map)){
+                visibility[i][j] = map[i][j];
+                dfs(i, j, pr, pc, visibility, map, visited, rows, cols);
             }
         }
     }
@@ -54,24 +52,37 @@ void dfs(int row, int col, int pr, int pc, char** visibility, char** map, bool* 
 
 // makes assumption that there are a positive number of rows
 // and columns iwthin a particular map
-bool isVisible(int row, int col, int pr, int pc, char** visibility, char** map, bool** visited){
-
-    int rows = sizeof(visited)/sizeof(visited[0]);
-    int cols = sizeof(visited[0])/sizeof(visited[0][0]);
-
-    char c = map[row][col];
-    if(row < 0 || col < 0 || row >= rows || col >= cols){ 
-        return false;
-    }
-
-    float m = (pc - col)/(pr - row);
-    for(int i = row; i <= pr; i++){
-        int j = col + (m * i);
-        if(map[i][j] != '.'){
-            return false;
+bool isVisible(int r, int c, int pr, int pc, char** visibility, char** map){
+    //char letter = map[r][c];
+    
+    if(pr == r){
+        for (int j = min(pc, c); j <= max(pc, c); j++){
+            if(map[r][j] != '.' && map[r][j] != '*') return false;
         }
+    }else{
+
+        float m = (pc - c)/(pr - r);
+        if(min(pr, r) == pr) m *= -1;
+
+        for(int i = min(pr, r); i <= max(pr, r); i++){
+            int j = pc + (m * i);
+            if(map[i][j] != '.' && map[i][j] != '*'){
+                return false;
+            }
+        } 
     }
-     
 
     return true;
+}
+
+int min(int a, int b){
+    return a <= b ? a : b;
+}
+
+int max(int a, int b){
+    return a >= b ? a : b;       
+}
+
+bool isValid(int r, int c, int rows, int cols, bool** visited){
+    return (r >= 0 && c >= 0 && r < rows && c < cols && !visited[r][c]);
 }
