@@ -77,7 +77,7 @@ void sendDisplay(game_t *game, player_t *player, addr_t addr){
     if (player != NULL){
         // player
         for(int i = 0; i<rows; i++){
-            strcat(displayInfo, player->visibility[i]);
+            strcat(displayInfo, game->map[i]);
             strcat(displayInfo, "\n");
         }
     } else {
