@@ -16,7 +16,6 @@ player_t *player_new(char *name, game_t *game, const addr_t addr) {
     player->game = game;
     player->inRoom = 1;
     player->id = game->playersJoined;
-    game->playersJoined++;
     
     player->visibility = malloc((game->rows + 1) * sizeof(char *));
     for(int i = 0; i<game->rows; i++){

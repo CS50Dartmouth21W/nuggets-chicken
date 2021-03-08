@@ -12,6 +12,9 @@ bool handleInput  (void *arg);
 bool handleMessage(void *arg, const addr_t from, const char *message);
 bool move(player_t *player, int dx, int dy);
 bool continuousMove(player_t *player, int dx, int dy);
+static void find_player3(void *arg, const char *key, void *item);
+int nameconflict(game_t *game, char* name);
+
 
 bool handleTimeout(void *arg){
     return true;
@@ -39,15 +42,14 @@ bool handleMessage(void *arg, const addr_t from, const char *message){
     if(strcmp(cmd,"PLAY") == 0){
         // ADD A NEW PLAYER
 
-        player_t *player = player_new(messageArg, game, from);
-
         if(game->playersJoined + 1 <= game->MaxPlayers){
-            if(strcmp(messageArg, "") == 0){
+            printf("%d\n", game->playersJoined);
+            if(nameconflict(game, messageArg) != 0){
                 quit(from, "Sorry - you must provide player's name.");
             }else{
+                player_t *player = player_new(messageArg, game, from);
                 hashtable_insert(game->players, messageArg, player);
                 game->playersJoined++;
-
                 sendOK(player);
                 sendGridInfo(game, from);
                 sendGoldInfo(game, player, from, 0);
@@ -57,6 +59,7 @@ bool handleMessage(void *arg, const addr_t from, const char *message){
         } else {
             quit(from, "Game is full: no more players can join.");
         }
+        
     } else if(strcmp(cmd, "SPECTATE") == 0){
         // ADD A SPECTATOR
         addSpectator(game, from);
@@ -231,5 +234,32 @@ bool continuousMove(player_t *player, int dx, int dy){
         return true;
     }else{
         return false;
+    }
+}
+
+typedef struct htSearch3 {
+    int result;
+    char* name;
+} htSearch3_t;
+
+int nameconflict(game_t *game, char* name){
+    htSearch3_t *obj = malloc(sizeof(htSearch3_t));
+    obj->name = name;
+    obj->result = 0;
+
+    hashtable_iterate(game->players, obj, find_player3);
+    
+    //free(obj->addr);
+    int result = obj->result;
+    free(obj);
+    printf("%d\n", result);
+    return result;
+}
+
+static void find_player3(void *arg, const char *key, void *item){
+    htSearch3_t *search = (htSearch3_t *) arg;
+    printf("%d\n", search->result);
+    if(strcmp(search->name, key) == 0){
+        search->result++;
     }
 }
