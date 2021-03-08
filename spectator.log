@@ -1,9 +1,0 @@
-START OF LOG
-player on port 41409
-spectate
-GRID message received: GRID 7 32
-displayStart: Success
-wRows = 66
-wCols = 80
-GOLD message received: GOLD 0 0 250
-DISPLAY message received

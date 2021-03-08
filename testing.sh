@@ -2,8 +2,9 @@
 #
 # CS 50 Nuggets
 
+# Testing for server.c
+# Not sure how to kill program after each run so it doesn't wait for player to join.
 
-# Not sure if need to save output to a file "2>server.log"
 # valid input
 ./server maps/main.txt
 
@@ -59,7 +60,19 @@
 
 
 
+
+
 # testing for player
+
+# When running these commands individually, the port number is saved correctly. (ie, executing ./server, killing the program, saving variable in port)
+# This doesn't work when running everything together in a shell script. Doesn't seem like the second command gets executed.
+
+./server 2>server.log maps/main.txt
+port=$(tail -n 1 server.log | grep -o '[0-9]*')
+./player 2>player.log localhost $port playername
+./player 2>spectator.log localhost $port
+
+
 
 # Not sure exactly how we can connect client with server since the port changes everytime.
 # Using 00000 right now
