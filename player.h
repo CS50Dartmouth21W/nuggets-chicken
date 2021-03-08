@@ -18,6 +18,6 @@ typedef struct player {
 
 
 player_t *player_new(char *name, game_t *game, const addr_t addr);
-void player_delete(player_t *player);
+void player_delete(void* item);
 
 #endif

@@ -16,6 +16,7 @@
 #include "./support/log.h"
 #include "./game.h"
 #include "./player.h"
+#include <unistd.h>
 
 game_t* map_loader(const char *file);
 void gold_generator(game_t *game);
