@@ -7,11 +7,17 @@
 #include "math.h"
 #include "./libcs50/hashtable.h"
 #include "communication.h"
-#include "./visibility.c"
+#include "visibility.c"
+
+static void find_player(void *arg, const char *key, void *item);
+static void find_player2(void *arg, const char *key, void *item);
+static void sort_players(void *arg, const char *key, void *item);
+static void broadcast(void *arg, const char *key, void *item);
 
 int getNumDigits(int a){
     return a == 0 ? 1 : (int)(ceil(log10(a))+1);
 }
+
 
 void quit(const addr_t addr, const char *reason){
     char quitMessage[sizeof(char)*strlen(reason) + 6]; 
@@ -22,7 +28,6 @@ void quit(const addr_t addr, const char *reason){
 
 void quitGame(game_t *game, addr_t addr){
     addr_t *spectatorAddr = game->spectatorAddr;
-
     if(spectatorAddr != NULL && message_eqAddr(addr, *spectatorAddr)){
         // coming from a spectator
         game->spectatorAddr = NULL;
@@ -41,7 +46,7 @@ void sendOK(player_t *player){
 }
 
 
-void sendGridInfo(game_t *game, addr_t addr){
+void sendGridInfo(game_t *game, addr_t *addr){
     int rows = game->rows;
     int cols = game->cols;
     int numDigits = 6 + getNumDigits(rows) + getNumDigits(cols);
@@ -49,13 +54,13 @@ void sendGridInfo(game_t *game, addr_t addr){
     char gridInfo[numDigits];
     // Note to self: check for buffer overflow
     sprintf(gridInfo, "GRID %d %d", rows, cols);
-    message_send(addr, gridInfo);
+    message_send(*addr, gridInfo);
 }
 
 
 // n is the amount of gold found
 // if player == NULL and n = 0, then it is from a spectator
-void sendGoldInfo(game_t *game, player_t *player, addr_t addr, int n){
+void sendGoldInfo(game_t *game, player_t *player, addr_t *addr, int n){
     
     int p = player == NULL ? 0 : player->gold;
     int r = game->TotalGoldLeft;
@@ -63,44 +68,59 @@ void sendGoldInfo(game_t *game, player_t *player, addr_t addr, int n){
     
     char goldInfo[numDigits];
     sprintf(goldInfo, "GOLD %d %d %d", n, p, r);
-    message_send(addr, goldInfo);
+    message_send(*addr, goldInfo);
 }
 
 // if player == NULL, then it is from spectator
-void sendDisplay(game_t *game, player_t *player, addr_t addr){
+void sendDisplay(game_t *game, player_t *player, addr_t *addr){
     int rows = game->rows;
     int cols = game->cols;
-    
     char displayInfo[8 + (rows+1) * cols];
     strcpy(displayInfo, "DISPLAY\n");
-    
+
+    // have different for loops for spectator and player 
     if (player != NULL){
-        // player
         for(int i = 0; i<rows; i++){
+            // chagne to player's visibility function
             strcat(displayInfo, game->map[i]);
             strcat(displayInfo, "\n");
         }
     } else {
-        // spectator
         for(int i = 0; i<rows; i++){
             strcat(displayInfo, game->map[i]);
             strcat(displayInfo, "\n");
         }
     }
-    message_send(addr, displayInfo);
+    message_send(*addr, displayInfo);
 }
 
-void sendGameOver(game_t *game, addr_t addr){
+void sendGameOver(addr_t addr, game_t *game){
+    player_t *sorted[game->MaxPlayers];
+
+    hashtable_iterate(game->players, sorted, sort_players);
     
-    char *message = malloc( sizeof(char) * 500 );
+    char message[11 + game->MaxPlayers * 24];
     strcat(message, "GAME OVER:\n");
-    hashtable_iterate(game->players, message, create_message);
+    
+    for (int i = 0; i<game->playersJoined; i++){
+        player_t *player = sorted[i];
+        if(player == NULL){
+            break;
+        }
+
+        char line[26];
+        printf("%c %d %s\n", (char)('A' + i), player->gold, player->name);
+        // Here are the values for the printing format
+        // number can't be more than 10 chars
+        // first 10 letters of real name
+        sprintf(line, "%c %10d %10s\n", (char)('A' + i), player->gold, player->name); 
+        printf("%s", line);
+        strcat(message, line);
+    }
     printf("%s\n", message);
-    char message2[700];
-    strcpy(message2, message);
-    free(message);
-    hashtable_iterate(game->players, message2, broadcast);
+    hashtable_iterate(game->players, message, broadcast);
     // send message to spectator
+    
     if(game->spectatorAddr != NULL){
         quit(*(game->spectatorAddr), message);
     }
@@ -124,7 +144,7 @@ player_t* getPlayerByAddr(game_t *game, const addr_t addr){
     return result;
 }
 
-void find_player(void *arg, const char *key, void *item){
+static void find_player(void *arg, const char *key, void *item){
     htSearch_t *search = (htSearch_t *) arg;
     player_t *player = (player_t *) item;
 
@@ -151,23 +171,20 @@ player_t *getPlayerByChar(game_t *game, char c){
     return result;
 }
 
-void find_player2(void *arg, const char *key, void *item){
+static void find_player2(void *arg, const char *key, void *item){
     htSearch2_t *search = (htSearch2_t *) arg;
     if( search->car == ((player_t *) item)->letter){
         search->result = item;
     }
 }
 
-void create_message(void *arg, const char *key, void *item){
-    char *message = (char *) arg;
+static void sort_players(void *arg, const char *key, void *item){
+    player_t **sorted = (player_t *) arg;
     player_t *player = (player_t *) item;
-    char line[26];
-    sprintf(line, "%c %10d %10s\n", player->letter, player->gold, key); 
-    printf("%s", line);
-    strcat(message, line);
+    sorted[player->id] = player;
 }
 
-void broadcast(void *arg, const char *key, void *item){
+static void broadcast(void *arg, const char *key, void *item){
     char* message = (char *) arg;
     player_t *player = (player_t *) item;    
     quit(player->addr, message);

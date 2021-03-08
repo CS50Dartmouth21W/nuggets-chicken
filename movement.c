@@ -35,12 +35,9 @@ bool handleMessage(void *arg, const addr_t from, const char *message){
 
     game_t *game = (game_t *) arg;
 
-    printf("MESSAGE is: %s\n", message);
-
     // parse message
     char *cmd = strtok(message, " ");
     char *messageArg = strtok(NULL, " ");
-    printf("messageArg: %s\n", messageArg);
 
     if(strcmp(cmd,"PLAY") == 0){
         // ADD A NEW PLAYER
@@ -157,6 +154,8 @@ bool handleMessage(void *arg, const addr_t from, const char *message){
          }
 
          sendDisplay(game, player, from);
+         // sendDisplay(game, NULL, *(game->spectatorAddr));
+    
          if(game->TotalGoldLeft == 0){
             sendGameOver(game, player->addr);
             return true;

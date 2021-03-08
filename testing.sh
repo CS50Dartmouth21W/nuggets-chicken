@@ -2,6 +2,8 @@
 #
 # CS 50 Nuggets
 
+
+# Not sure if need to save output to a file "2>server.log"
 # valid input
 ./server maps/main.txt
 
@@ -63,28 +65,28 @@
 # Using 00000 right now
 
 # spectator join
-./player localhost 00000
+./player 2>spectator.log localhost 00000
 
 # another spectator attempts to join
-./player localhost 00000
+./player 2>spectator.log localhost 00000
 
 # player joins
-./player localhost 00000 p1
+./player 2>player.log localhost 00000 p1
 
 # player joins
-./player localhost 00000 p2
+./player 2>player.log localhost 00000 p2
 
 # player joins
-./player localhost 00000 p3
+./player 2>player.log localhost 00000 p3
 
 # player joins
-./player localhost 00000 p4
+./player 2>player.log localhost 00000 p4
 
 # player joins (multiple words in name)
-./player localhost 00000 big green
+./player 2>player.log localhost 00000 big green
 
 # player joins (mulitple words in name)
-./player localhost 00000 dartmouth big green
+./player 2>player.log localhost 00000 dartmouth big green
 
 # error cases
 
