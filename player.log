@@ -1,24 +1,14 @@
 START OF LOG
-<<<<<<< HEAD
-player on port 43419
-interactive player mode; name 'alex'
+player on port 40782
+interactive player mode; name 'playername'
 OK message received: OK A
-GRID message received: GRID 5 14
+GRID message received: GRID 21 79
 displayStart: Success
 wRows = 63
-wCols = 204
+wCols = 120
 GOLD message received: GOLD 0 0 250
 DISPLAY message received
 DISPLAY message received
-=======
-player on port 46490
-interactive player mode; name 'p8'
-OK message received: OK F
-GRID message received: GRID 7 32
-displayStart: Success
-wRows = 66
-wCols = 80
-GOLD message received: GOLD 0 0 145
 DISPLAY message received
 DISPLAY message received
 DISPLAY message received
@@ -27,36 +17,36 @@ DISPLAY message received
 DISPLAY message received
 DISPLAY message received
 DISPLAY message received
-GOLD message received: GOLD 116 116 29
-DISPLAY message received
-QUIT message received: QUIT  ü¢÷ÿGAME OVER:
-D         87         p5
-F        145         p8
-E         18         p4
-B          0         p1
-C          0         p3
-A          0         p2
-
-END OF LOG
-e received
 DISPLAY message received
 DISPLAY message received
 DISPLAY message received
 DISPLAY message received
 DISPLAY message received
-GOLD message received: GOLD 25 144 1
 DISPLAY message received
 DISPLAY message received
 DISPLAY message received
-GOLD message received: GOLD 1 145 0
 DISPLAY message received
-QUIT message received: QUIT  ü¢÷ÿGAME OVER:
-D         87         p5
-F        145         p8
-E         18         p4
-B          0         p1
-C          0         p3
-A          0         p2
-
-END OF LOG
->>>>>>> 6e57a67d26cd220e0dd1a7d150d32998c8849726
+DISPLAY message received
+DISPLAY message received
+DISPLAY message received
+DISPLAY message received
+DISPLAY message received
+DISPLAY message received
+DISPLAY message received
+DISPLAY message received
+DISPLAY message received
+DISPLAY message received
+DISPLAY message received
+DISPLAY message received
+DISPLAY message received
+DISPLAY message received
+DISPLAY message received
+DISPLAY message received
+DISPLAY message received
+DISPLAY message received
+DISPLAY message received
+DISPLAY message received
+DISPLAY message received
+DISPLAY message received
+DISPLAY message received
+DISPLAY message received

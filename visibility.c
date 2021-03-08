@@ -3,6 +3,7 @@
 #include "player.h"
 #include "game.h"
 #include <stdbool.h>
+#include "math.h"
 
 void updateVisibility(player_t *player);
 void dfs(int r, int c, int pr, int pc, char** visibility, char** map, bool** visited, int rows, int cols);
@@ -42,7 +43,8 @@ void dfs(int r, int c, int pr, int pc, char** visibility, char** map, bool** vis
     for (int i = r-1; i <= r+1; i++){
         for(int j = c-1; j <= c+1; j++){
             
-            if( isValid(i, j, rows, cols, visited) && isVisible(i, j, pr, pc, visibility, map)){
+            if( isValid(i, j, rows, cols, visited) &&
+                isVisible(i, j, pr, pc, visibility, map)){
                 visibility[i][j] = map[i][j];
                 dfs(i, j, pr, pc, visibility, map, visited, rows, cols);
             }
@@ -56,20 +58,53 @@ bool isVisible(int r, int c, int pr, int pc, char** visibility, char** map){
     //char letter = map[r][c];
     
     if(pr == r){
-        for (int j = min(pc, c); j <= max(pc, c); j++){
+        for (int j = min(pc, c) + 1; j < max(pc, c); j++){
             if(map[r][j] != '.' && map[r][j] != '*') return false;
         }
-    }else{
+    } else if(pc == c){
+        for(int i = min(pr, r) + 1; i<max(pr, r); i++){
+            if(map[i][c] != '.' && map[i][c] != '*') return false;
+        }
+    }
+    
+    else{
 
         float m = (pc - c)/(pr - r);
-        if(min(pr, r) == pr) m *= -1;
 
-        for(int i = min(pr, r); i <= max(pr, r); i++){
-            int j = pc + (m * i);
-            if(map[i][j] != '.' && map[i][j] != '*'){
+        if(min(pr, r) == r) m *= -1;
+        
+        int j = (min(pr, r) == pr) ? pc : c;
+        for(int i = min(pr, r) + 1; i < max(pr, r); i++){
+
+            j += ceil(m);
+            
+            char ch = map[i][j];
+            if(ch == '+'){
+
+                printf("%d %d %d\n", m, i ,j); 
+            }
+            if(ch != '.' && ch != '*'){
                 return false;
             }
-        } 
+        }
+
+        m = (pr - r)/(pc - c);
+
+        if(min(pc, c) == c) m *= -1;
+        
+        j = (min(pc, c) == pc) ? pr : r;
+        
+        for(int i = min(pc, c) + 1; i < max(pc, c); i++){
+
+            j += ceil(m);
+            char ch = map[j][i];
+            if(ch == '+'){
+                printf("%d %d %d\n", m, i ,j); 
+            }
+            if(ch != '.' && ch != '*'){
+                return false;
+            }
+        }
     }
 
     return true;
