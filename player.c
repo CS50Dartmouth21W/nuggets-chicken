@@ -47,7 +47,7 @@ player_t *player_new(char *name, game_t *game, const addr_t addr) {
     return player;
 }
 
-void player_delete(player_t *player){
+void player_delete(void* item){
+    player_t *player = (player_t *) item;
     if(player != NULL) free(player);
 }
-

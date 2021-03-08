@@ -16,14 +16,15 @@
 #include "./support/log.h"
 #include "./game.h"
 #include "./player.h"
+#include <unistd.h>
 
 game_t* map_loader(const char *file);
 void gold_generator(game_t *game);
 
 static const int MaxPlayers = 10;  // maximum number of players
 static const int GoldTotal = 250;      // amount of gold in the game
-static const int GoldMinNumPiles = 1; // minimum number of gold piles
-static const int GoldMaxNumPiles = 1; // maximum number of gold piles
+static const int GoldMinNumPiles = 10; // minimum number of gold piles
+static const int GoldMaxNumPiles = 30; // maximum number of gold piles
 static const int timeout = 5000;
 
 
