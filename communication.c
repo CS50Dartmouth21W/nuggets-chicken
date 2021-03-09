@@ -71,13 +71,17 @@ void sendDisplay(game_t *game, player_t *player, addr_t addr){
     int rows = game->rows;
     int cols = game->cols;
     
+    // int rows = player->visibility->rows;
+    // int cols = player->visibility->cols;
+
     char displayInfo[8 + (rows+1) * cols];
     strcpy(displayInfo, "DISPLAY\n");
     
     if (player != NULL){
         // player
         for(int i = 0; i<rows; i++){
-            strcat(displayInfo, game->map[i]);
+            // strcat(displayInfo, game->map[i]);
+            strcat(displayInfo, player->visibility[i]);
             strcat(displayInfo, "\n");
         }
     } else {

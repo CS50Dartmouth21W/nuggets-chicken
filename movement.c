@@ -53,8 +53,9 @@ bool handleMessage(void *arg, const addr_t from, const char *message){
                 sendOK(player);
                 sendGridInfo(game, from);
                 sendGoldInfo(game, player, from, 0);
-                sendDisplay(game, player, from);
+                sendDisplay(game, player, from);    
                 updateVisibility(player);
+            
             }
         } else {
             quit(from, "Game is full: no more players can join.");
