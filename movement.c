@@ -53,8 +53,8 @@ bool handleMessage(void *arg, const addr_t from, const char *message){
                 sendOK(player);
                 sendGridInfo(game, from);
                 sendGoldInfo(game, player, from, 0);
-                sendDisplay(game, player, from);
                 updateVisibility(player);
+                sendDisplay(game, player, from);
             }
         } else {
             quit(from, "Game is full: no more players can join.");
@@ -221,6 +221,7 @@ bool move(player_t *player, int dx, int dy){
             game->TotalGoldLeft -= newGold;
             sendGoldInfo(game, player, player->addr, newGold);
         }
+
         updateVisibility(player);
         return true;
     } else{

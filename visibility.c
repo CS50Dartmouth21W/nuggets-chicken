@@ -43,8 +43,7 @@ void dfs(int r, int c, int pr, int pc, char** visibility, char** map, bool** vis
     for (int i = r-1; i <= r+1; i++){
         for(int j = c-1; j <= c+1; j++){
             
-            if( isValid(i, j, rows, cols, visited) &&
-                isVisible(i, j, pr, pc, visibility, map)){
+            if( isValid(i, j, rows, cols, visited) && isVisible(i, j, pr, pc, visibility, map)){
                 visibility[i][j] = map[i][j];
                 dfs(i, j, pr, pc, visibility, map, visited, rows, cols);
             }
@@ -70,40 +69,44 @@ bool isVisible(int r, int c, int pr, int pc, char** visibility, char** map){
     else{
 
         float m = (pc - c)/(pr - r);
+        //int j = ((min(pr, r) == pr) ? pc : c);// + m;
 
-        if(min(pr, r) == r) m *= -1;
-        
-        int j = (min(pr, r) == pr) ? pc : c;
+        int j1 = ((min(pr, r) == pr) ? pc : c);// + m;
+        int j2 = ((min(pr, r) == pr) ? pc : c);// + m;
         for(int i = min(pr, r) + 1; i < max(pr, r); i++){
 
-            j += ceil(m);
-            
-            char ch = map[i][j];
-            if(ch == '+'){
-
-                printf("%d %d %d\n", m, i ,j); 
-            }
-            if(ch != '.' && ch != '*'){
+            //j += m;
+            //char ch = map[i][j];
+            j1 += floor(m);
+            j2 += ceil(m);
+            /*if(ch != '.' && ch != '*'){
                 return false;
-            }
+            }*/
+            char ch1 = map[i][j1];
+            char ch2 = map[i][j2];
+            if ((ch1 != '.' && ch1 != '*') && (ch2 != '.' && ch2 != '*')) return false;
         }
 
         m = (pr - r)/(pc - c);
-
-        if(min(pc, c) == c) m *= -1;
+        //j = ((min(pc, c) == pc) ? pr : r); //+ m;
         
-        j = (min(pc, c) == pc) ? pr : r;
+        j1 = ((min(pc, c) == pc) ? pr : r);// + m;
+        j2 = ((min(pc, c) == pc) ? pr : r);// + m;
         
         for(int i = min(pc, c) + 1; i < max(pc, c); i++){
 
-            j += ceil(m);
+            /*j += m;//ceil(m);
             char ch = map[j][i];
-            if(ch == '+'){
-                printf("%d %d %d\n", m, i ,j); 
-            }
+            
             if(ch != '.' && ch != '*'){
                 return false;
-            }
+            }*/
+
+            j1 += floor(m);
+            j2 += ceil(m);
+            char ch1 = map[j1][i];
+            char ch2 = map[j2][i];
+            if ((ch1 != '.' && ch1 != '*') && (ch2 != '.' && ch2 != '*')) return false;
         }
     }
 
