@@ -7,7 +7,7 @@
 
 void updateVisibility(player_t *player);
 void dfs(int r, int c, int pr, int pc, char** visibility, char** map, bool** visited, int rows, int cols);
-bool isVisible(int r, int c, int pr, int pc, char** visibility, char** map);
+bool isVisible(int rows, int cols, int r, int c, int pr, int pc, char** visibility, char** map);
 bool isValid(int r, int c, int rows, int cols, bool** visited);
 
 int min(int a, int b);
@@ -43,7 +43,7 @@ void dfs(int r, int c, int pr, int pc, char** visibility, char** map, bool** vis
     for (int i = r-1; i <= r+1; i++){
         for(int j = c-1; j <= c+1; j++){
             
-            if( isValid(i, j, rows, cols, visited) && isVisible(i, j, pr, pc, visibility, map)){
+            if( isValid(i, j, rows, cols, visited) && isVisible(rows, cols, i, j, pr, pc, visibility, map)){
                 visibility[i][j] = map[i][j];
                 dfs(i, j, pr, pc, visibility, map, visited, rows, cols);
             }
@@ -53,7 +53,7 @@ void dfs(int r, int c, int pr, int pc, char** visibility, char** map, bool** vis
 
 // makes assumption that there are a positive number of rows
 // and columns iwthin a particular map
-bool isVisible(int r, int c, int pr, int pc, char** visibility, char** map){
+bool isVisible(int rows, int cols, int r, int c, int pr, int pc, char** visibility, char** map){
     //char letter = map[r][c];
     
     if(pr == r){
@@ -68,7 +68,7 @@ bool isVisible(int r, int c, int pr, int pc, char** visibility, char** map){
     
     else{
 
-        float m = (pc - c)/(pr - r);
+        float m = (float)(pc - c)/(float)(pr - r);
         //int j = ((min(pr, r) == pr) ? pc : c);// + m;
 
         int j1 = ((min(pr, r) == pr) ? pc : c);// + m;
@@ -82,12 +82,16 @@ bool isVisible(int r, int c, int pr, int pc, char** visibility, char** map){
             /*if(ch != '.' && ch != '*'){
                 return false;
             }*/
-            char ch1 = map[i][j1];
-            char ch2 = map[i][j2];
-            if ((ch1 != '.' && ch1 != '*') && (ch2 != '.' && ch2 != '*')) return false;
+            if (j2 < cols && j1 < cols && j1 >= 0 && j2 >= 0) {
+                char ch1 = map[i][j1];
+                char ch2 = map[i][j2];
+                if ((ch1 != '.' && ch1 != '*') && (ch2 != '.' && ch2 != '*')) return false;
+            } else {
+                return false;
+            }
         }
 
-        m = (pr - r)/(pc - c);
+        m = (float)(pr - r) / (float)(pc - c);
         //j = ((min(pc, c) == pc) ? pr : r); //+ m;
         
         j1 = ((min(pc, c) == pc) ? pr : r);// + m;
@@ -104,9 +108,23 @@ bool isVisible(int r, int c, int pr, int pc, char** visibility, char** map){
 
             j1 += floor(m);
             j2 += ceil(m);
-            char ch1 = map[j1][i];
-            char ch2 = map[j2][i];
-            if ((ch1 != '.' && ch1 != '*') && (ch2 != '.' && ch2 != '*')) return false;
+            if (min(pc, c) == c) {
+                if (j2 > pr) j2 = pr;
+            }
+            if (min(pc, c) == pc) {
+                if (m>0) {
+                    if (j2 > (r-1)) j2 = (r-1);
+                } else {
+                    if (j2 < (r+1)) j2 = (r+1);
+                }
+            }
+            if (j2 < rows && j1 < rows && j1 >= 0 && j2 >= 0) {
+                char ch1 = map[j1][i];
+                char ch2 = map[j2][i];
+                if ((ch1 != '.' && ch1 != '*') && (ch2 != '.' && ch2 != '*')) return false;
+            } else {
+                return false;
+            }
         }
     }
 
