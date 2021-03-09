@@ -73,6 +73,7 @@ bool isVisible(int rows, int cols, int r, int c, int pr, int pc, char** visibili
 
         int j1 = ((min(pr, r) == pr) ? pc : c);// + m;
         int j2 = ((min(pr, r) == pr) ? pc : c);// + m;
+        if (m > 1) j1++;
         for(int i = min(pr, r) + 1; i < max(pr, r); i++){
 
             //j += m;
@@ -85,6 +86,8 @@ bool isVisible(int rows, int cols, int r, int c, int pr, int pc, char** visibili
             if (j2 < cols && j1 < cols && j1 >= 0 && j2 >= 0) {
                 char ch1 = map[i][j1];
                 char ch2 = map[i][j2];
+                if (r == 12 && c == 5) printf("dongus %d %d %f %c\n", i, j2, ceil(m), ch2);
+                if (r == 12 && c == 5) printf("chongus %d %d %f %c\n", i, j1, floor(m), ch1);
                 if ((ch1 != '.' && ch1 != '*') && (ch2 != '.' && ch2 != '*')) return false;
             } else {
                 return false;
@@ -109,7 +112,7 @@ bool isVisible(int rows, int cols, int r, int c, int pr, int pc, char** visibili
             j1 += floor(m);
             j2 += ceil(m);
             if (min(pc, c) == c) {
-                if (j2 > pr) j2 = pr;
+                if (j2 > pr && m < 1) j2 = pr;
             }
             if (min(pc, c) == pc) {
                 if (m>0) {
@@ -121,6 +124,7 @@ bool isVisible(int rows, int cols, int r, int c, int pr, int pc, char** visibili
             if (j2 < rows && j1 < rows && j1 >= 0 && j2 >= 0) {
                 char ch1 = map[j1][i];
                 char ch2 = map[j2][i];
+                if (r == 12 && c == 5) printf("rongus %d %d %f %c\n", j2, i, ceil(m), ch2);
                 if ((ch1 != '.' && ch1 != '*') && (ch2 != '.' && ch2 != '*')) return false;
             } else {
                 return false;

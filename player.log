@@ -1,102 +1,12 @@
 START OF LOG
-player on port 56146
-interactive player mode; name 'p2'
-OK message received: OK A
+player on port 34537
+interactive player mode; name '1'
+OK message received: OK B
 GRID message received: GRID 21 79
 displayStart: Success
 wRows = 66
 wCols = 80
 GOLD message received: GOLD 0 0 250
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
-DISPLAY message received
 DISPLAY message received
 DISPLAY message received
 DISPLAY message received
