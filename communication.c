@@ -71,7 +71,7 @@ void sendDisplay(game_t *game, player_t *player, addr_t addr){
     int rows = game->rows;
     int cols = game->cols;
     
-    char displayInfo[8 + (rows+1) * cols];
+    char displayInfo[80 + (rows+1) * cols];
     strcpy(displayInfo, "DISPLAY\n");
     
     if (player != NULL){
