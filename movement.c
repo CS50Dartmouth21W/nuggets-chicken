@@ -39,6 +39,7 @@ bool handleMessage(void *arg, const addr_t from, const char *message){
     char *cmd = strtok(message, " ");
     char *messageArg = strtok(NULL, " ");
 
+    // create a new player struct if first word is "PLAY"
     if(strcmp(cmd,"PLAY") == 0){
         // ADD A NEW PLAYER
 
@@ -48,7 +49,7 @@ bool handleMessage(void *arg, const addr_t from, const char *message){
                 quit(from, "Sorry - you must provide player's name.");
             }else{
                 player_t *player = player_new(messageArg, game, from);
-                hashtable_insert(game->players, messageArg, player);
+                hashtable_insert(game->players, messageArg, player);    // add to hashtable of players
                 game->playersJoined++;
                 sendOK(player);
                 sendGridInfo(game, from);
@@ -57,9 +58,9 @@ bool handleMessage(void *arg, const addr_t from, const char *message){
                 sendDisplay(game, player, from);
             }
         } else {
-            quit(from, "Game is full: no more players can join.");
+            quit(from, "Game is full: no more players can join.");  // send quit message if game is full
         }
-        
+        // creates a new spectator
     } else if(strcmp(cmd, "SPECTATE") == 0){
         // ADD A SPECTATOR
         addSpectator(game, from);
@@ -201,6 +202,7 @@ bool move(player_t *player, int dx, int dy){
         } else if (game->map[newrow][newcol] == '*'){
             player->inRoom = 1;
         } else {
+            // switch location with another player
             player_t *player2 = getPlayerByChar(game, c);
             int store = player->inRoom;
             player->inRoom = player2->inRoom;
@@ -210,10 +212,12 @@ bool move(player_t *player, int dx, int dy){
             player2->col = player->col;
         }
 
+        // update the location of the player
         game->map[newrow][newcol] = player->letter;
         player->row = newrow;
         player->col = newcol;
 
+        // update status when player collects gold
         if(c == '*'){
             int newGold = game->goldcounts[newrow][newcol];
             player->gold += newGold; 
@@ -222,6 +226,7 @@ bool move(player_t *player, int dx, int dy){
             sendGoldInfo(game, player, player->addr, newGold);
         }
 
+        // update the visibility of the player
         updateVisibility(player);
         return true;
     } else{
@@ -229,6 +234,7 @@ bool move(player_t *player, int dx, int dy){
     }
 }
 
+// helper method for continuous movement
 bool continuousMove(player_t *player, int dx, int dy){
     if(move(player, dx, dy)){
         while(move(player, dx, dy)){}
@@ -238,17 +244,19 @@ bool continuousMove(player_t *player, int dx, int dy){
     }
 }
 
+// struct holding name and result
 typedef struct htSearch3 {
     int result;
     char* name;
 } htSearch3_t;
 
+// returns whether there is a name conflict
 int nameconflict(game_t *game, char* name){
     htSearch3_t *obj = malloc(sizeof(htSearch3_t));
     obj->name = name;
     obj->result = 0;
 
-    hashtable_iterate(game->players, obj, find_player3);
+    hashtable_iterate(game->players, obj, find_player3);    // search through the hashtable of players for name conflicts
     
     //free(obj->addr);
     int result = obj->result;
@@ -257,6 +265,7 @@ int nameconflict(game_t *game, char* name){
     return result;
 }
 
+// helper method to compare player names
 static void find_player3(void *arg, const char *key, void *item){
     htSearch3_t *search = (htSearch3_t *) arg;
     printf("%d\n", search->result);
