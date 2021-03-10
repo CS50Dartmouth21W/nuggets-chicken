@@ -95,37 +95,34 @@ bool handleMessage(void *arg, const addr_t from, const char *message){
             return game->playersJoined == 0;
 
         // singular move 
-        case 'h':
-            // move left
-            if (move(player, -1, 0)) sendDisplay(game, *(game->spectatorAddr));
-            break;
+        case 'h': move(player, -1, 0); break; // move left
         case 'l':
             // move right
-            if (move(player, 1, 0)) sendDisplay(game, *(game->spectatorAddr)); 
+            if (move(player, 1, 0)) sendDisplay(game, from); 
             break;
         case 'j':
             // move down
-            if (move(player, 0, -1)) sendDisplay(game, *(game->spectatorAddr)); 
+            if (move(player, 0, -1)) sendDisplay(game, from); 
             break;
         case 'k':
             // move up
-            if (move(player, 0, 1)) sendDisplay(game, *(game->spectatorAddr)); 
+            if (move(player, 0, 1)) sendDisplay(game, from); 
             break;
         case 'y':
             // move up and left
-            if (move(player, -1, 1)) sendDisplay(game, *(game->spectatorAddr));
+            if (move(player, -1, 1)) sendDisplay(game, from);
             break;
         case 'u':
             // move up and right
-             if (move(player, 1, 1)) sendDisplay(game, *(game->spectatorAddr));
+             if (move(player, 1, 1)) sendDisplay(game, from);
             break;
         case 'b':
             // move down and left
-            if (move(player, -1, -1)) sendDisplay(game, *(game->spectatorAddr));
+            if (move(player, -1, -1)) sendDisplay(game, from);
             break;
         case 'n':
             // move down and right
-            if (move(player, 1, -1)) sendDisplay(game, *(game->spectatorAddr));
+            if (move(player, 1, -1)) sendDisplay(game, from);
             break;
 
         // continuous movement
@@ -235,9 +232,10 @@ bool move(player_t *player, int dx, int dy){
             sendGoldInfo(game, player, player->addr, newGold);
         }
 
-        // update the visibility of the player
+        sendDisplay(game, player->addr);
         return true;
     } else{
+        sendDisplay(game, player->addr);
         return false;
     }
 }
