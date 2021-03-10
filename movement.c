@@ -88,76 +88,31 @@ bool handleMessage(void *arg, const addr_t from, const char *message){
         }
 
         switch(messageArg[0]){
-        case 'Q':
-            // quit game
-            quitGame(game, from);
-            // if nobody left, game over
-            return game->playersJoined == 0;
+            case 'Q':
+                // quit game
+                quitGame(game, from);
+                // if nobody left, game over
+                return game->playersJoined == 0;
 
-        // singular move 
-        case 'h': move(player, -1, 0); break; // move left
-        case 'l':
-            // move right
-            if (move(player, 1, 0)) sendDisplay(game, from); 
-            break;
-        case 'j':
-            // move down
-            if (move(player, 0, -1)) sendDisplay(game, from); 
-            break;
-        case 'k':
-            // move up
-            if (move(player, 0, 1)) sendDisplay(game, from); 
-            break;
-        case 'y':
-            // move up and left
-            if (move(player, -1, 1)) sendDisplay(game, from);
-            break;
-        case 'u':
-            // move up and right
-             if (move(player, 1, 1)) sendDisplay(game, from);
-            break;
-        case 'b':
-            // move down and left
-            if (move(player, -1, -1)) sendDisplay(game, from);
-            break;
-        case 'n':
-            // move down and right
-            if (move(player, 1, -1)) sendDisplay(game, from);
-            break;
+            // singular move 
+            case 'h': move(player, -1,  0); break; // move left
+            case 'l': move(player,  1,  0); break; // move right
+            case 'j': move(player,  0, -1); break; // move down
+            case 'k': move(player,  0,  1); break; // move up
+            case 'y': move(player, -1,  1); break; // move up and left
+            case 'u': move(player,  1,  1); break; // move up and right
+            case 'b': move(player, -1, -1); break; // move down and left
+            case 'n': move(player,  1, -1); break; // move down and right
 
-        // continuous movement
-        case 'H':
-            // move left
-            continuousMove(player, -1, 0);
-            break;
-        case 'L':
-            // move right
-            continuousMove(player, 1, 0);
-            break;
-        case 'J':
-            // move down
-            continuousMove(player, 0, -1);
-            break;
-        case 'K':
-            // move up
-            continuousMove(player, 0, 1);
-            break;
-        case 'Y':
-            // move up and left
-            continuousMove(player, -1, 1);
-            break;
-        case 'U':
-            // move up and right
-            continuousMove(player, 1, 1);
-            break;
-        case 'B':
-            // move down and left
-            continuousMove(player, -1, -1);
-            break;
-        case 'N':
-            // move down and right
-            continuousMove(player, 1, -1);
-            break;
+            // continuous movement
+            case 'H': continuousMove(player, -1,  0); break; // move left
+            case 'L': continuousMove(player,  1,  0); break; // move right
+            case 'J': continuousMove(player,  0, -1); break; // move down
+            case 'K': continuousMove(player,  0,  1); break; // move up
+            case 'Y': continuousMove(player, -1,  1); break; // move up and left
+            case 'U': continuousMove(player,  1,  1); break; // move up and right
+            case 'B': continuousMove(player, -1, -1); break; // move down and left
+            case 'N': continuousMove(player,  1, -1); break; // move down and right
         
          }
 
