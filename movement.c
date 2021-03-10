@@ -1,3 +1,13 @@
+/*
+ * movement.c - nuggets game module for handling messages.
+ * 
+ * Defines functions required by message_loop() as well
+ * as helper functions to process messages, like move()
+ * 
+ * Team Chicken 21W
+ * 
+ */
+
 #include <stdlib.h>
 #include <stdbool.h>
 #include "string.h"
@@ -7,13 +17,16 @@
 #include "./libcs50/hashtable.h"
 #include "communication.h"
 
+/**************** global function declarations ****************/
 bool handleTimeout(void *arg);
 bool handleInput  (void *arg);
 bool handleMessage(void *arg, const addr_t from, const char *message);
 bool move(player_t *player, int dx, int dy);
 bool continuousMove(player_t *player, int dx, int dy);
+
+/**************** local function declarations ****************/
 static void find_player3(void *arg, const char *key, void *item);
-int nameconflict(game_t *game, char* name);
+static int nameconflict(game_t *game, char* name);
 
 
 bool handleTimeout(void *arg){
@@ -251,7 +264,7 @@ typedef struct htSearch3 {
 } htSearch3_t;
 
 // returns whether there is a name conflict
-int nameconflict(game_t *game, char* name){
+static int nameconflict(game_t *game, char* name){
     htSearch3_t *obj = malloc(sizeof(htSearch3_t));
     obj->name = name;
     obj->result = 0;

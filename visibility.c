@@ -1,3 +1,10 @@
+/*
+ * visibility.c - nuggets game module for updating player map visibility
+ * 
+ * Team Chicken 21W
+ * 
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include "player.h"
@@ -5,13 +12,15 @@
 #include <stdbool.h>
 #include "math.h"
 
+/**************** global function declarations ****************/
 void updateVisibility(player_t *player);
-void dfs(int r, int c, int pr, int pc, char** visibility, char** map, bool** visited, int rows, int cols);
-bool isVisible(int rows, int cols, int r, int c, int pr, int pc, char** visibility, char** map);
-bool isValid(int r, int c, int rows, int cols, bool** visited);
 
-int min(int a, int b);
-int max(int a, int b);
+/**************** local function declarations ****************/
+static void dfs(int r, int c, int pr, int pc, char** visibility, char** map, bool** visited, int rows, int cols);
+static bool isVisible(int rows, int cols, int r, int c, int pr, int pc, char** visibility, char** map);
+static bool isValid(int r, int c, int rows, int cols, bool** visited);
+static int min(int a, int b);
+static int max(int a, int b);
 
 // updates a player's visibility based off of a new point 
 // (x,y) that it encouters. We use the game map to figure out the new visibility
@@ -41,7 +50,7 @@ void updateVisibility(player_t *player){
 
 
 // recursive function that uses depth first search to find all visible points
-void dfs(int r, int c, int pr, int pc, char** visibility, char** map, bool** visited, int rows, int cols){
+static void dfs(int r, int c, int pr, int pc, char** visibility, char** map, bool** visited, int rows, int cols){
     visited[r][c] = true;
 
     // loop through all neighboring points
@@ -58,7 +67,8 @@ void dfs(int r, int c, int pr, int pc, char** visibility, char** map, bool** vis
 
 // Helper function to check if a point is visible.
 // makes assumption that there are a positive number of rows and columns iwthin a particular map
-bool isVisible(int rows, int cols, int r, int c, int pr, int pc, char** visibility, char** map){
+static bool isVisible(int rows, int cols, int r, int c, int pr, int pc, char** visibility, char** map){
+
     //char letter = map[r][c];
     
     if(pr == r){    // point on the same row
@@ -83,19 +93,13 @@ bool isVisible(int rows, int cols, int r, int c, int pr, int pc, char** visibili
         // loop through rows between the player and point
         for(int i = min(pr, r) + 1; i < max(pr, r); i++){
 
-            //j += m;
-            //char ch = map[i][j];
             j1 += floor(m);
             j2 += ceil(m);
-            /*if(ch != '.' && ch != '*'){
-                return false;
-            }*/
+  
             // check point is in bounds
             if (j2 < cols && j1 < cols && j1 >= 0 && j2 >= 0) {
                 char ch1 = map[i][j1];
                 char ch2 = map[i][j2];
-                if (r == 12 && c == 5) printf("dongus %d %d %f %c\n", i, j2, ceil(m), ch2);
-                if (r == 12 && c == 5) printf("chongus %d %d %f %c\n", i, j1, floor(m), ch1);
                 // return false if the two characters are not a room spot or gold
                 if ((ch1 != '.' && ch1 != '*') && (ch2 != '.' && ch2 != '*')) return false;
             } else {
@@ -105,20 +109,12 @@ bool isVisible(int rows, int cols, int r, int c, int pr, int pc, char** visibili
 
         // repeat for the case of steeper lines
         m = (float)(pr - r) / (float)(pc - c);
-        //j = ((min(pc, c) == pc) ? pr : r); //+ m;
         
         j1 = ((min(pc, c) == pc) ? pr : r);// + m;
         j2 = ((min(pc, c) == pc) ? pr : r);// + m;
         
         // loop through column between the player and point
         for(int i = min(pc, c) + 1; i < max(pc, c); i++){
-
-            /*j += m;//ceil(m);
-            char ch = map[j][i];
-            
-            if(ch != '.' && ch != '*'){
-                return false;
-            }*/
 
             // add the slope to the row (two versions, floor and ceiling)
             j1 += floor(m);
@@ -139,29 +135,26 @@ bool isVisible(int rows, int cols, int r, int c, int pr, int pc, char** visibili
             if (j2 < rows && j1 < rows && j1 >= 0 && j2 >= 0) {
                 char ch1 = map[j1][i];
                 char ch2 = map[j2][i];
-                if (r == 12 && c == 5) printf("rongus %d %d %f %c\n", j2, i, ceil(m), ch2);
                 if ((ch1 != '.' && ch1 != '*') && (ch2 != '.' && ch2 != '*')) return false; // return false if char is not a room spot or gold
             } else {
                 return false;
             }
         }
     }
-
-
     return true;
 }
 
 // returns the minimum of two numbers
-int min(int a, int b){
+static int min(int a, int b){
     return a <= b ? a : b;
 }
 
 // returns the maximum of two numbers
-int max(int a, int b){
+static int max(int a, int b){
     return a >= b ? a : b;       
 }
 
 // checks if the point is within the bounds of the array
-bool isValid(int r, int c, int rows, int cols, bool** visited){
+static bool isValid(int r, int c, int rows, int cols, bool** visited){
     return (r >= 0 && c >= 0 && r < rows && c < cols && !visited[r][c]);
 }
