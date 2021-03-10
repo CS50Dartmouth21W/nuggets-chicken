@@ -143,7 +143,7 @@ void sendDisplay(game_t *game, player_t *player, addr_t addr){
         // player
         for (int i = 0; i < rows; i++) {
             // loop through rows, add to display info message with new line
-            strcat(displayInfo, game->map[i]);
+            strcat(displayInfo, player->visibility[i]);
             strcat(displayInfo, "\n");
         }
     } else {
@@ -168,6 +168,8 @@ void sendGameOver(game_t *game, addr_t addr){
     #define MESSAGESIZE 700
     // allocate memory and concatenate GAME OVER message
     char *message = malloc(sizeof(char) * MESSAGESIZE);
+    // so that we don't get an uninitialized value error
+    message[0] = '\0';
     strcat(message, "GAME OVER:\n");
     char message2[MESSAGESIZE]; // create array for message 2
 

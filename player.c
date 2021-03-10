@@ -33,6 +33,8 @@ player_t *player_new(char *name, game_t *game, const addr_t addr) {
         for(int j = 0; j<game->cols; j++){
             player->visibility[i][j] = ' ';
         }
+        // to prevent uninitialized value error in sendDisplay
+        player->visibility[i][game->cols] = '\0';
     }
 
     // set the players letter to appear on map
@@ -63,5 +65,12 @@ player_t *player_new(char *name, game_t *game, const addr_t addr) {
 void player_delete(void* item){
     // get the player from the item in the hashtable, then free it.
     player_t *player = (player_t *) item;
-    if(player != NULL) free(player);
+    if(player != NULL) {
+        for(int i = 0; i<player->game->rows; i++){
+            free(player->visibility[i]);
+        }
+        free(player->visibility);
+
+        free(player);
+    }
 }

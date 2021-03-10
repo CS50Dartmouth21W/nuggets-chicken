@@ -38,9 +38,6 @@ bool handleInput (void *arg){
     return true;
 }
 
-// TODO: update move to indclude the from
-//       work out handleTimeout
-//       work on handleInput
 bool handleMessage(void *arg, const addr_t from, const char *message){
     if(message == NULL){
         return true;
