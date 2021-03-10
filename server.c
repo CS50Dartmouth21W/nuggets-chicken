@@ -133,12 +133,10 @@ void gold_generator(game_t *game) {
     // choose a random number of piles between GoldMaxNumPiles and GoldMinNumPiles
     int numPiles = (rand() % (GoldMaxNumPiles - GoldMinNumPiles + 1) + GoldMinNumPiles);
 
-    printf("numPiles: %d\n", numPiles);
-
-    int goldToDrop = GoldTotal;     // track how many gold nuggets still need to be dropped
+    // track how many gold nuggets still need to be dropped
+    int goldToDrop = GoldTotal;     
 
     while (goldToDrop > 0) {
-            
         // get a random row and column
         int row = (rand() % (rows));
         int column = (rand() % (columns));
@@ -159,18 +157,13 @@ void gold_generator(game_t *game) {
             }
                 
                 
-            printf("Pile #: %d, numGoldInPile %d\n", numPiles, numGoldInPile);
             // set the spot on the map as a gold pile and keep track of the amount of gold
             game->map[row][column] = '*';
             game->goldcounts[row][column] = numGoldInPile;
 
-            printf("SETTING: %d %d %d\n", row, column, game->goldcounts[row][column]);
-
             //decrement remaining gold and piles
             goldToDrop -= numGoldInPile;
             numPiles--;
-            }
         }
-
-    printf("Gold to drop is: %d\n", goldToDrop);
+    }
 }

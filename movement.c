@@ -70,6 +70,8 @@ bool handleMessage(void *arg, const addr_t from, const char *message){
                 // add to hashtable of players
                 hashtable_insert(game->players, messageArg, player);   
                 game->playersJoined++;
+
+                // send messages
                 sendOK(player);
                 sendGridInfo(game, from);
                 sendGoldInfo(game, player, from, 0);
@@ -147,55 +149,58 @@ bool move(player_t *player, int dx, int dy){
     int newrow = player->row - dy;
     int newcol = player->col + dx;
 
-    char c = game->map[newrow][newcol];
     
-    if((newrow >= 0 || newcol >= 0 || newrow < game->rows || newcol < game->cols)
-        && c != ' ' && c != '-' && c != '|' && c != '+'){
+    if(newrow >= 0 && newcol >= 0 && newrow < game->rows && newcol < game->cols){
+
+        char c = game->map[newrow][newcol];
+
+        if(c != ' ' && c != '-' && c != '|' && c != '+'){
         
-        // check whether player is in room or not before replacing character
-        if (player->inRoom == 1) {
-            game->map[player->row][player->col] = '.';
-        } else {
-            game->map[player->row][player->col] = '#';
-        }
+            // check whether player is in room or not before replacing character
+            if (player->inRoom == 1) {
+                game->map[player->row][player->col] = '.';
+            } else {
+                game->map[player->row][player->col] = '#';
+            }
 
-        // update whether player's new location will be in room or hallway
-        if (game->map[newrow][newcol] == '.') {
-            player->inRoom = 1;
-        } else if (game->map[newrow][newcol] == '#'){
-            player->inRoom = 0;
-        } else if (game->map[newrow][newcol] == '*'){
-            player->inRoom = 1;
-        } else {
-            // switch location with another player
-            player_t *player2 = getPlayerByChar(game, c);
-            int store = player->inRoom;
-            player->inRoom = player2->inRoom;
-            player2->inRoom = store;
-            game->map[player->row][player->col] = c;
-            player2->row = player->row;
-            player2->col = player->col;
-        }
+            // update whether player's new location will be in room or hallway
+            if (game->map[newrow][newcol] == '.') {
+                player->inRoom = 1;
+            } else if (game->map[newrow][newcol] == '#'){
+                player->inRoom = 0;
+            } else if (game->map[newrow][newcol] == '*'){
+                player->inRoom = 1;
+            } else {
+                // switch location with another player
+                player_t *player2 = getPlayerByChar(game, c);
+                int store = player->inRoom;
+                player->inRoom = player2->inRoom;
+                player2->inRoom = store;
+                game->map[player->row][player->col] = c;
+                player2->row = player->row;
+                player2->col = player->col;
+            }
 
-        // update the location of the player
-        game->map[newrow][newcol] = player->letter;
-        player->row = newrow;
-        player->col = newcol;
+            // update the location of the player
+            game->map[newrow][newcol] = player->letter;
+            player->row = newrow;
+            player->col = newcol;
 
-        // update status when player collects gold
-        if(c == '*'){
-            int newGold = game->goldcounts[newrow][newcol];
-            player->gold += newGold; 
-            game->goldcounts[newrow][newcol] = 0;
-            game->TotalGoldLeft -= newGold;
-            sendGoldInfo(game, player, player->addr, newGold);
-        }
+            // update status when player collects gold
+            if(c == '*'){
+                int newGold = game->goldcounts[newrow][newcol];
+                player->gold += newGold; 
+                game->goldcounts[newrow][newcol] = 0;
+                game->TotalGoldLeft -= newGold;
+                sendGoldInfo(game, player, player->addr, newGold);
+            }
 
-        sendDisplay(game, player->addr);
-        return true;
-    } else{
-        return false;
+            sendDisplay(game, player->addr);
+            return true;
+        } 
     }
+
+    return false;
 }
 
 // struct holding name and result
