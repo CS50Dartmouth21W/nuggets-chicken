@@ -22,22 +22,32 @@ bool handleTimeout(void *arg);
 bool handleInput  (void *arg);
 bool handleMessage(void *arg, const addr_t from, const char *message);
 bool move(player_t *player, int dx, int dy);
-bool continuousMove(player_t *player, int dx, int dy);
 
 /**************** local function declarations ****************/
 static void find_player3(void *arg, const char *key, void *item);
 static int nameconflict(game_t *game, char* name);
 
-
+// dummy input used by message_loop
 bool handleTimeout(void *arg){
+    printf("Timeout.\n");
     return true;
 }
 
+// dummy input used by message_loop
 bool handleInput (void *arg){
-    printf("input: %p", arg);
+    printf("Input: %s\n", (char *) arg);
     return true;
 }
 
+/*
+ * HandlMessage handle a message const char *message from const addr_t from
+ *
+ * This function will parse the message into a command and argument
+ * If the command is PLAY, a new player is added
+ * If the command is SPECTATE, a new spectator is added
+ * If the command is KEY, then a player is either moved or quits
+ *
+ */
 bool handleMessage(void *arg, const addr_t from, const char *message){
     if(message == NULL){
         return true;
@@ -52,14 +62,13 @@ bool handleMessage(void *arg, const addr_t from, const char *message){
     // create a new player struct if first word is "PLAY"
     if(strcmp(cmd,"PLAY") == 0){
         // ADD A NEW PLAYER
-
         if(game->playersJoined + 1 <= game->MaxPlayers){
-            printf("%d\n", game->playersJoined);
             if(nameconflict(game, messageArg) != 0){
                 quit(from, "Sorry - you must provide player's name.");
             }else{
                 player_t *player = player_new(messageArg, game, from);
-                hashtable_insert(game->players, messageArg, player);    // add to hashtable of players
+                // add to hashtable of players
+                hashtable_insert(game->players, messageArg, player);   
                 game->playersJoined++;
                 sendOK(player);
                 sendGridInfo(game, from);
@@ -68,19 +77,19 @@ bool handleMessage(void *arg, const addr_t from, const char *message){
                 sendDisplay(game, from);
             }
         } else {
-            quit(from, "Game is full: no more players can join.");  // send quit message if game is full
+            // send quit message if game is full
+            quit(from, "Game is full: no more players can join.");  
         }
-        // creates a new spectator
+
     } else if(strcmp(cmd, "SPECTATE") == 0){
         // ADD A SPECTATOR
         addSpectator(game, from);
         sendGridInfo(game, from);
         sendGoldInfo(game, NULL, from, 0);
-
         sendDisplay(game, from);
+
     } else if(strcmp(cmd, "KEY") == 0){
-        // MOVE A PLAYER
-        // OR QUIT
+        // MOVE A PLAYER OR QUIT
         player_t *player = getPlayerByAddr(game, from);
         
         if(strcmp(messageArg,"") == 0){
@@ -88,11 +97,8 @@ bool handleMessage(void *arg, const addr_t from, const char *message){
         }
 
         switch(messageArg[0]){
-            case 'Q':
-                // quit game
-                quitGame(game, from);
-                // if nobody left, game over
-                return game->playersJoined == 0;
+            // quit game, if nobody left, game over
+            case 'Q': quitGame(game, from); return game->playersJoined == 0;
 
             // singular move 
             case 'h': move(player, -1,  0); break; // move left
@@ -105,21 +111,23 @@ bool handleMessage(void *arg, const addr_t from, const char *message){
             case 'n': move(player,  1, -1); break; // move down and right
 
             // continuous movement
-            case 'H': continuousMove(player, -1,  0); break; // move left
-            case 'L': continuousMove(player,  1,  0); break; // move right
-            case 'J': continuousMove(player,  0, -1); break; // move down
-            case 'K': continuousMove(player,  0,  1); break; // move up
-            case 'Y': continuousMove(player, -1,  1); break; // move up and left
-            case 'U': continuousMove(player,  1,  1); break; // move up and right
-            case 'B': continuousMove(player, -1, -1); break; // move down and left
-            case 'N': continuousMove(player,  1, -1); break; // move down and right
+            case 'H': while(move(player, -1,  0)); break; // move left
+            case 'L': while(move(player,  1,  0)); break; // move right
+            case 'J': while(move(player,  0, -1)); break; // move down
+            case 'K': while(move(player,  0,  1)); break; // move up
+            case 'Y': while(move(player, -1,  1)); break; // move up and left
+            case 'U': while(move(player,  1,  1)); break; // move up and right
+            case 'B': while(move(player, -1, -1)); break; // move down and left
+            case 'N': while(move(player,  1, -1)); break; // move down and right
         
-         }
+            // key is invalid
+            default: printf("INVALID KEY: %c\n", messageArg[0]);
+        }
 
-         if(game->TotalGoldLeft == 0){
+        if(game->TotalGoldLeft == 0){
             sendGameOver(game, player->addr);
             return true;
-         }
+        }
 
     } else {
         printf("INVALID COMMAND\n");
@@ -135,15 +143,11 @@ bool handleMessage(void *arg, const addr_t from, const char *message){
  * it will return false when it can't move to a psot
  */
 bool move(player_t *player, int dx, int dy){
-    // TODO: check if is spectator or player
     game_t *game = player->game;
     int newrow = player->row - dy;
     int newcol = player->col + dx;
 
     char c = game->map[newrow][newcol];
-    printf("new row: %d\n", newrow);
-    printf("new col: %d\n", newcol);
-    printf("CHARACTER IS: %c\n", c);
     
     if((newrow >= 0 || newcol >= 0 || newrow < game->rows || newcol < game->cols)
         && c != ' ' && c != '-' && c != '|' && c != '+'){
@@ -190,17 +194,6 @@ bool move(player_t *player, int dx, int dy){
         sendDisplay(game, player->addr);
         return true;
     } else{
-        sendDisplay(game, player->addr);
-        return false;
-    }
-}
-
-// helper method for continuous movement
-bool continuousMove(player_t *player, int dx, int dy){
-    if(move(player, dx, dy)){
-        while(move(player, dx, dy)){}
-        return true;
-    }else{
         return false;
     }
 }
@@ -217,19 +210,18 @@ static int nameconflict(game_t *game, char* name){
     obj->name = name;
     obj->result = 0;
 
-    hashtable_iterate(game->players, obj, find_player3);    // search through the hashtable of players for name conflicts
+    // search through the hashtable of players for name conflicts
+    hashtable_iterate(game->players, obj, find_player3);    
     
     //free(obj->addr);
     int result = obj->result;
     free(obj);
-    printf("%d\n", result);
     return result;
 }
 
 // helper method to compare player names
 static void find_player3(void *arg, const char *key, void *item){
     htSearch3_t *search = (htSearch3_t *) arg;
-    printf("%d\n", search->result);
     if(strcmp(search->name, key) == 0){
         search->result++;
     }
