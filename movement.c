@@ -65,7 +65,7 @@ bool handleMessage(void *arg, const addr_t from, const char *message){
                 sendGridInfo(game, from);
                 sendGoldInfo(game, player, from, 0);
                 updateVisibility(player);
-                sendDisplay(game, player, from);
+                sendDisplay(game, from);
             }
         } else {
             quit(from, "Game is full: no more players can join.");  // send quit message if game is full
@@ -77,7 +77,7 @@ bool handleMessage(void *arg, const addr_t from, const char *message){
         sendGridInfo(game, from);
         sendGoldInfo(game, NULL, from, 0);
 
-        sendDisplay(game, NULL, from);
+        sendDisplay(game, from);
     } else if(strcmp(cmd, "KEY") == 0){
         // MOVE A PLAYER
         // OR QUIT
@@ -97,35 +97,35 @@ bool handleMessage(void *arg, const addr_t from, const char *message){
         // singular move 
         case 'h':
             // move left
-            move(player, -1, 0);
+            if (move(player, -1, 0)) sendDisplay(game, *(game->spectatorAddr));
             break;
         case 'l':
             // move right
-            move(player, 1, 0); 
+            if (move(player, 1, 0)) sendDisplay(game, *(game->spectatorAddr)); 
             break;
         case 'j':
             // move down
-            move(player, 0, -1); 
+            if (move(player, 0, -1)) sendDisplay(game, *(game->spectatorAddr)); 
             break;
         case 'k':
             // move up
-            move(player, 0, 1); 
+            if (move(player, 0, 1)) sendDisplay(game, *(game->spectatorAddr)); 
             break;
         case 'y':
             // move up and left
-            move(player, -1, 1);
+            if (move(player, -1, 1)) sendDisplay(game, *(game->spectatorAddr));
             break;
         case 'u':
             // move up and right
-             move(player, 1, 1);
+             if (move(player, 1, 1)) sendDisplay(game, *(game->spectatorAddr));
             break;
         case 'b':
             // move down and left
-            move(player, -1, -1);
+            if (move(player, -1, -1)) sendDisplay(game, *(game->spectatorAddr));
             break;
         case 'n':
             // move down and right
-            move(player, 1, -1);
+            if (move(player, 1, -1)) sendDisplay(game, *(game->spectatorAddr));
             break;
 
         // continuous movement
@@ -164,7 +164,6 @@ bool handleMessage(void *arg, const addr_t from, const char *message){
         
          }
 
-         sendDisplay(game, player, from);
          if(game->TotalGoldLeft == 0){
             sendGameOver(game, player->addr);
             return true;
@@ -237,7 +236,6 @@ bool move(player_t *player, int dx, int dy){
         }
 
         // update the visibility of the player
-        updateVisibility(player);
         return true;
     } else{
         return false;

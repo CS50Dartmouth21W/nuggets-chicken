@@ -64,7 +64,7 @@ void sendGoldInfo(game_t *game, player_t *player, addr_t addr, int n);
  * Function returns nothing
  * 
  */
-void sendDisplay(game_t *game, player_t *player, addr_t addr);
+void sendDisplay(game_t *game, const addr_t addr);
 
 /*********************** sendGameOver ************************/
 /*

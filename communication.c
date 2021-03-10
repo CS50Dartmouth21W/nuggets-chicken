@@ -18,6 +18,9 @@
 #include "./support/message.h"
 #include "./libcs50/hashtable.h"
 
+/*********** local function declarations *************/
+static void broadcastDisplay(void *arg, const char *key, void *item);
+
 /************************ getNumDigits ***********************/
 /*
  * Return the number of digits in the integer argument
@@ -132,30 +135,25 @@ void sendGoldInfo(game_t *game, player_t *player, addr_t addr, int n){
  * See communication.h for detailed description.
  * TODO: loops don't differ between cases. Add more info or just keep 1 loop?
  */
-void sendDisplay(game_t *game, player_t *player, addr_t addr){
+void sendDisplay(game_t *game, const addr_t addr){
     int rows = game->rows;      // get number of rows from game
     int cols = game->cols;      // get number of columns from game
     
     char displayInfo[8 + (rows+1) * cols];  // create array for display info message
     strcpy(displayInfo, "DISPLAY\n");       // copy DISPLAY to info message
     
-    if (player != NULL){
-        // player
-        for (int i = 0; i < rows; i++) {
-            // loop through rows, add to display info message with new line
-            strcat(displayInfo, player->visibility[i]);
-            strcat(displayInfo, "\n");
-        }
-    } else {
-        // spectator
-        for(int i = 0; i < rows; i++) {
-            // loop through rows, add to display info message with new line
-            strcat(displayInfo, game->map[i]);
-            strcat(displayInfo, "\n");
-        }
+    hashtable_iterate(game->players, NULL, broadcastDisplay);
+    
+    // spectator
+    for(int i = 0; i < rows; i++) {
+        // loop through rows, add to display info message with new line
+        strcat(displayInfo, game->map[i]);
+        strcat(displayInfo, "\n");
     }
 
-    message_send(addr, displayInfo);
+    if (game->spectatorAddr != NULL){
+        message_send(addr, displayInfo);
+    }
 }
 
 /*********************** sendGameOver ************************/
@@ -305,4 +303,29 @@ void broadcast(void *arg, const char *key, void *item){
     char* message = (char *) arg;
 
     quit(player->addr, message);
+}
+
+/*********************** broadcastDisplay ***************************/
+/*
+ * Create display message and send to players
+ * See communication.h for detailed description.
+ */
+static void broadcastDisplay(void *arg, const char *key, void *item){
+
+    player_t *player = (player_t *) item;
+    int rows = player->game->rows;      // get number of rows and cols from game
+    int cols = player->game->cols;      // get number of rows and cols from game
+
+    char displayInfo[8 + (rows+1) * cols];  // create array for display info message
+    displayInfo[0] = '\0';
+    strcpy(displayInfo, "DISPLAY\n");       // copy DISPLAY to info message
+    
+
+    updateVisibility(player);
+    for (int i = 0; i < rows; i++) {
+        // loop through rows, add to display info message with new line
+        strcat(displayInfo, player->visibility[i]);
+        strcat(displayInfo, "\n");
+    }    
+    message_send(player->addr, displayInfo);
 }

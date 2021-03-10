@@ -45,12 +45,13 @@ void updateVisibility(player_t *player){
     
     // call dfs on the player's location
     dfs(pr, pc, pr, pc, visibility, map, visited, rows, cols);
-    visibility[pr][pc] = player->letter;
 
-   for (int i = 0; i<rows; i++){
+    for (int i = 0; i<rows; i++){
         free(visited[i]);
-   } 
-   free(visited);
+    }
+
+    free(visited);
+    visibility[pr][pc] = '@'; 
 }
 
 
