@@ -1,3 +1,10 @@
+/*
+ * game.c - game module for tracking status of nuggets game
+ * 
+ * Team Chicken 21W
+ * 
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include "./libcs50/hashtable.h"
@@ -16,6 +23,7 @@ game_t *game_new(char *map[], int rows, int cols, int MaxPlayers, int TotalGold)
 
     game->spectatorAddr = NULL;
 
+    // memory allocation for array that tracks gold pile sizes
     for (int i = 0; i < rows; i++){
         game->map[i] = map[i];
         game->goldcounts[i] = malloc((cols + 1) * sizeof(int));
@@ -32,6 +40,7 @@ game_t *game_new(char *map[], int rows, int cols, int MaxPlayers, int TotalGold)
     return game;
 }
 
+// deletes the game struct
 void game_delete(game_t *game){
     for (int i = 0; i < game->rows; i++){
         free(game->map[i]);
@@ -43,6 +52,7 @@ void game_delete(game_t *game){
     free(game);
 }
 
+// initializes the spectator address in the game struct
 void addSpectator(game_t *game, addr_t addr){
     if(game->spectatorAddr != NULL){
         // tell current spectator to quit
