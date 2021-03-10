@@ -3,8 +3,6 @@
  * All communication done wiht players and spectators. 
  * Responsible for networking, using message.h module
  *
- * Team: Nuggets
- *
  */
 
 #include <math.h>
