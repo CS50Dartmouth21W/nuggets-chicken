@@ -81,7 +81,6 @@ static void dfs(int r, int c, int pr, int pc, player_t *player, bool** visited){
 // within a particular map
 static bool isVisible(int r, int c, int pr, int pc, player_t *player){
 
-    char **visibility = player->visibility;
     char **map = player->game->map; 
     int rows = player->game->rows;
     int cols = player->game->cols;
