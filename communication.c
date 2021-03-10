@@ -3,6 +3,8 @@
  * All communication done wiht players and spectators. 
  * Responsible for networking, using message.h module
  *
+ * Team: Nuggets
+ *
  */
 
 #include <math.h>
@@ -133,7 +135,7 @@ void sendGoldInfo(game_t *game, player_t *player, addr_t addr, int n){
  * See communication.h for detailed description.
  * TODO: loops don't differ between cases. Add more info or just keep 1 loop?
  */
-void sendDisplay(game_t *game, addr_t addr){
+void sendDisplay(game_t *game, const addr_t addr){
     int rows = game->rows;      // get number of rows from game
     int cols = game->cols;      // get number of columns from game
     
@@ -150,8 +152,7 @@ void sendDisplay(game_t *game, addr_t addr){
     }
 
     if (game->spectatorAddr != NULL){
-        const addr_t addrr = *(game->spectatorAddr);
-        message_send(addrr, displayInfo);
+        message_send(addr, displayInfo);
     }
 }
 
