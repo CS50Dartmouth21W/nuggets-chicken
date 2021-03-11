@@ -16,21 +16,19 @@
 void updateVisibility(player_t *player);
 
 /**************** local function declarations ****************/
-static void dfs(int r, int c, int pr, int pc, char** visibility, char** map, bool** visited, int rows, int cols);
-static bool isVisible(int rows, int cols, int r, int c, int pr, int pc, char** visibility, char** map);
+static void dfs(int r, int c, int pr, int pc, player_t *player, bool** visited);
+static bool isVisible(int r, int c, int pr, int pc, player_t *player);
 static bool isValid(int r, int c, int rows, int cols, bool** visited);
 static int min(int a, int b);
 static int max(int a, int b);
 
 // updates a player's visibility based off of a new point 
 // (x,y) that it encouters. We use the game map to figure out the new visibility
-//
 void updateVisibility(player_t *player){
     int pr = player->row;
     int pc = player->col;
+    
     game_t *game = player->game;
-    char **visibility = player->visibility;
-    char **map = game->map; 
     int rows = game->rows;
     int cols = game->cols;
     
@@ -44,32 +42,48 @@ void updateVisibility(player_t *player){
     }
     
     // call dfs on the player's location
-    dfs(pr, pc, pr, pc, visibility, map, visited, rows, cols);
-    visibility[pr][pc] = '@'; 
+    dfs(pr, pc, pr, pc, player, visited);
+
+    // free visited
+    for (int i = 0; i<rows; i++){
+        free(visited[i]);
+    }
+    free(visited);
+
+    // mark spot on the visibillity map
+    player->visibility[pr][pc] = '@'; 
 }
 
 
 // recursive function that uses depth first search to find all visible points
-static void dfs(int r, int c, int pr, int pc, char** visibility, char** map, bool** visited, int rows, int cols){
+static void dfs(int r, int c, int pr, int pc, player_t *player, bool** visited){
+
+    game_t *game = player->game;
     visited[r][c] = true;
 
     // loop through all neighboring points
     for (int i = r-1; i <= r+1; i++){
         for(int j = c-1; j <= c+1; j++){
-            // if the point is in bounds and visible, update the visibility map and call recursively
-            if( isValid(i, j, rows, cols, visited) && isVisible(rows, cols, i, j, pr, pc, visibility, map)){
-                visibility[i][j] = map[i][j];
-                dfs(i, j, pr, pc, visibility, map, visited, rows, cols);
+            // if the point is in bounds and visible, 
+            // update the visibility map and call recursively
+            if( isValid(i, j, game->rows, game->cols, visited) && 
+                isVisible(i, j, pr, pc, player)){
+
+                player->visibility[i][j] = game->map[i][j];
+                dfs(i, j, pr, pc, player, visited);
             }
         }
     }
 }
 
 // Helper function to check if a point is visible.
-// makes assumption that there are a positive number of rows and columns iwthin a particular map
-static bool isVisible(int rows, int cols, int r, int c, int pr, int pc, char** visibility, char** map){
+// makes assumption that there are a positive number of rows and columns 
+// within a particular map
+static bool isVisible(int r, int c, int pr, int pc, player_t *player){
 
-    //char letter = map[r][c];
+    char **map = player->game->map; 
+    int rows = player->game->rows;
+    int cols = player->game->cols;
     
     if(pr == r){    // point on the same row
         for (int j = min(pc, c) + 1; j < max(pc, c); j++){
@@ -79,15 +93,13 @@ static bool isVisible(int rows, int cols, int r, int c, int pr, int pc, char** v
         for(int i = min(pr, r) + 1; i<max(pr, r); i++){
             if(map[i][c] != '.' && map[i][c] != '*') return false;
         }
-    }
-    
-    else{
+    } else{
 
-        float m = (float)(pc - c)/(float)(pr - r);  //slope of line between point and player
-        //int j = ((min(pr, r) == pr) ? pc : c);// + m;
+        //slope of line between point and player
+        float m = (float)(pc - c)/(float)(pr - r);  
 
-        int j1 = ((min(pr, r) == pr) ? pc : c);// + m;
-        int j2 = ((min(pr, r) == pr) ? pc : c);// + m;
+        int j1 = ((min(pr, r) == pr) ? pc : c);
+        int j2 = ((min(pr, r) == pr) ? pc : c);
         if (m > 1) j1++;
 
         // loop through rows between the player and point
@@ -101,7 +113,9 @@ static bool isVisible(int rows, int cols, int r, int c, int pr, int pc, char** v
                 char ch1 = map[i][j1];
                 char ch2 = map[i][j2];
                 // return false if the two characters are not a room spot or gold
-                if ((ch1 != '.' && ch1 != '*') && (ch2 != '.' && ch2 != '*')) return false;
+                if ((ch1 != '.' && ch1 != '*') && (ch2 != '.' && ch2 != '*')) {
+                    return false;
+                }
             } else {
                 return false;
             }
@@ -110,8 +124,8 @@ static bool isVisible(int rows, int cols, int r, int c, int pr, int pc, char** v
         // repeat for the case of steeper lines
         m = (float)(pr - r) / (float)(pc - c);
         
-        j1 = ((min(pc, c) == pc) ? pr : r);// + m;
-        j2 = ((min(pc, c) == pc) ? pr : r);// + m;
+        j1 = ((min(pc, c) == pc) ? pr : r);
+        j2 = ((min(pc, c) == pc) ? pr : r);
         
         // loop through column between the player and point
         for(int i = min(pc, c) + 1; i < max(pc, c); i++){
@@ -135,12 +149,16 @@ static bool isVisible(int rows, int cols, int r, int c, int pr, int pc, char** v
             if (j2 < rows && j1 < rows && j1 >= 0 && j2 >= 0) {
                 char ch1 = map[j1][i];
                 char ch2 = map[j2][i];
-                if ((ch1 != '.' && ch1 != '*') && (ch2 != '.' && ch2 != '*')) return false; // return false if char is not a room spot or gold
+                // return false if char is not a room spot or gold
+                if ((ch1 != '.' && ch1 != '*') && (ch2 != '.' && ch2 != '*')){
+                    return false; 
+                }
             } else {
                 return false;
             }
         }
     }
+
     return true;
 }
 

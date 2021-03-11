@@ -143,7 +143,7 @@ void sendDisplay(game_t *game, const addr_t addr){
     strcpy(displayInfo, "DISPLAY\n");       // copy DISPLAY to info message
     
     hashtable_iterate(game->players, NULL, broadcastDisplay);
-
+    
     // spectator
     for(int i = 0; i < rows; i++) {
         // loop through rows, add to display info message with new line
@@ -166,6 +166,8 @@ void sendGameOver(game_t *game, addr_t addr){
     #define MESSAGESIZE 700
     // allocate memory and concatenate GAME OVER message
     char *message = malloc(sizeof(char) * MESSAGESIZE);
+    // so that we don't get an uninitialized value error
+    message[0] = '\0';
     strcat(message, "GAME OVER:\n");
     char message2[MESSAGESIZE]; // create array for message 2
 
@@ -315,7 +317,9 @@ static void broadcastDisplay(void *arg, const char *key, void *item){
     int cols = player->game->cols;      // get number of rows and cols from game
 
     char displayInfo[8 + (rows+1) * cols];  // create array for display info message
+    displayInfo[0] = '\0';
     strcpy(displayInfo, "DISPLAY\n");       // copy DISPLAY to info message
+    
 
     updateVisibility(player);
     for (int i = 0; i < rows; i++) {
