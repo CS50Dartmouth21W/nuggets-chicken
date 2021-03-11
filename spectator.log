@@ -1,0 +1,8 @@
+START OF LOG
+player on port 41185
+spectate
+GRID message received: GRID 21 79
+displayStart: Success
+wRows = 49
+wCols = 185
+GOLD message received: GOLD 0 0 250

@@ -59,4 +59,8 @@ void addSpectator(game_t *game, addr_t addr){
         quit(*(game->spectatorAddr), "You have been replaced by a new spectator.");
     }
     game->spectatorAddr = &addr;
+
+    printf("address of spectator is %p\n", &addr);
+    printf("address of spectator is %p\n", game->spectatorAddr);
+    printf("spectator is %p\n", *(game->spectatorAddr));
 }
