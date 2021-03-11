@@ -17,7 +17,8 @@ typedef struct game {
     bool isover;
     int cols;
     int rows;
-    addr_t *spectatorAddr;
+    addr_t spectatorAddr;
+    bool spectator;
     int playersJoined;
     int MaxPlayers;
     int TotalGoldLeft;

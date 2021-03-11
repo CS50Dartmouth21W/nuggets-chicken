@@ -21,7 +21,7 @@ game_t *game_new(char *map[], int rows, int cols, int MaxPlayers, int TotalGold)
     game->TotalGoldLeft = TotalGold;
     game->goldcounts = malloc((rows + 1) * sizeof(int *));
 
-    game->spectatorAddr = NULL;
+    game->spectator = false;
 
     // memory allocation for array that tracks gold pile sizes
     for (int i = 0; i < rows; i++){
@@ -54,9 +54,10 @@ void game_delete(game_t *game){
 
 // initializes the spectator address in the game struct
 void addSpectator(game_t *game, addr_t addr){
-    if(game->spectatorAddr != NULL){
+    if(game->spectator == false){
         // tell current spectator to quit
-        quit(*(game->spectatorAddr), "You have been replaced by a new spectator.");
+        quit((game->spectatorAddr), "You have been replaced by a new spectator.");
     }
-    game->spectatorAddr = &addr;
+    game->spectatorAddr = addr;
+    game->spectator = true;
 }

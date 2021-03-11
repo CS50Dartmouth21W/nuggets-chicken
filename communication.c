@@ -52,14 +52,14 @@ void quit(const addr_t addr, const char *reason) {
  * See communication.h for detailed description.
  */
 void quitGame(game_t *game, addr_t addr) {
-    addr_t *spectatorAddr = game->spectatorAddr;
+    addr_t spectatorAddr = game->spectatorAddr;
 
-    if(spectatorAddr != NULL && message_eqAddr(addr, *spectatorAddr)){
+    if(game->spectator == true && message_eqAddr(addr, spectatorAddr)){
         // send quit message for a spectator
         quit(addr, "Thanks for Watching");
 
         // set the spectator address to null
-        game->spectatorAddr = NULL;         
+        game->spectator = false;         
     } else {
         // send quit message for a player
         quit(addr, "Thanks for Playing");
@@ -151,8 +151,8 @@ void sendDisplay(game_t *game, const addr_t addr){
         strcat(displayInfo, "\n");
     }
 
-    if (game->spectatorAddr != NULL){
-        message_send(addr, displayInfo);
+    if (game->spectator == true){
+        message_send(game->spectatorAddr, displayInfo);
     }
 }
 
@@ -181,8 +181,8 @@ void sendGameOver(game_t *game, addr_t addr){
     hashtable_iterate(game->players, message2, broadcast);
     
     // send message to spectator
-    if (game->spectatorAddr != NULL){
-        quit(*(game->spectatorAddr), message);
+    if (game->spectator == true){
+        quit((game->spectatorAddr), message);
     }
 }
 
