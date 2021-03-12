@@ -32,6 +32,7 @@ static const int timeout = 5000;
 /**************** global function declarations ****************/
 game_t* map_loader(const char *file);
 void gold_generator(game_t *game);
+int checknum(char *argv[], const int argnum);
 
 /**************** main ****************/
 int main(int argc, char* argv[]) {
@@ -48,11 +49,10 @@ int main(int argc, char* argv[]) {
 
     // if seed argument is a positive integer, set it as the seed
     if (argc == 3) {
-        char *lastchar;
-        int seed = strtold(argv[2], &lastchar);
+        int seed = checknum(argv, 2);
 
         // check if seed is a positive number
-        if (*lastchar == '\0' && seed > 0) {
+        if (seed > 0) {
             srand(seed);
         } else{
             printf("Seed must be a positive number\n");
@@ -165,5 +165,18 @@ void gold_generator(game_t *game) {
             goldToDrop -= numGoldInPile;
             numPiles--;
         }
+    }
+}
+
+
+int checknum(char *argv[], const int argnum) {
+    int number;
+    char nextchar;
+
+    if (sscanf(argv[argnum], "%d%c", &number, & nextchar) == 1) {
+      return number;
+    } else {
+      printf("argument %d: '%s' is not a valid number\n", argnum, argv[argnum]);
+      exit(1);
     }
 }

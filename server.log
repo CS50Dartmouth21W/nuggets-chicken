@@ -1,0 +1,4 @@
+START OF LOG
+message_init: ready at port '36042'
+message_loop: input ready on stdin
+message_done: message module closing down.
