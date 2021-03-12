@@ -1,9 +1,10 @@
+#!/bin/bash
 # testing for server.c
 #
 # CS 50 Nuggets
+# Team Chicken
 
 # Testing for server.c
-# Not sure how to kill program after each run so it doesn't wait for player to join.
 
 # valid input
 ./server maps/main.txt <a.txt
@@ -60,3 +61,4 @@ echo here2
 # non-existent map file
 ./server dartmouthmap.txt 2
 
+exit 0
