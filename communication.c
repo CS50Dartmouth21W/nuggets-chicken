@@ -54,7 +54,7 @@ void quit(const addr_t addr, const char *reason) {
 void quitGame(game_t *game, addr_t addr) {
     addr_t spectatorAddr = game->spectatorAddr;
 
-    if(game->spectator == true && message_eqAddr(addr, spectatorAddr)){
+    if(game->spectator && message_eqAddr(addr, spectatorAddr)){
         // send quit message for a spectator
         quit(addr, "Thanks for Watching");
 
@@ -132,7 +132,6 @@ void sendGoldInfo(game_t *game, player_t *player, addr_t addr, int n){
 /*
  * Send display message with map information
  * See communication.h for detailed description.
- * TODO: loops don't differ between cases. Add more info or just keep 1 loop?
  */
 void sendDisplay(game_t *game, const addr_t addr){
     int rows = game->rows;      // get number of rows from game
@@ -159,7 +158,6 @@ void sendDisplay(game_t *game, const addr_t addr){
 /*
  * Send game over message
  * See communication.h for detailed description.
- * TODO: need for two messages?
  */
 void sendGameOver(game_t *game, addr_t addr){
     #define MESSAGESIZE 700
@@ -188,8 +186,6 @@ void sendGameOver(game_t *game, addr_t addr){
 /*
  * Struct used solely for searching, used by getPlayerAddr funct
  * See communication.h for detailed description.
- * TODO: move typedefs to top of file, or group together
- * TODO: combine struct with htSearch2?
  */
 typedef struct htSearch {
     player_t *result;
@@ -225,8 +221,6 @@ player_t* getPlayerByAddr(game_t *game, const addr_t addr){
 /*
  * Find player in game
  * See communication.h for detailed description.
- * TODO: update name convention to match other functions
- * TODO: add comments
  */
 void find_player(void *arg, const char *key, void *item){
     htSearch_t *search = (htSearch_t *) arg;
@@ -241,7 +235,6 @@ void find_player(void *arg, const char *key, void *item){
 /*
  * Return player with given character ID
  * See communication.h for detailed description.
- * TODO: remove comment
  */
 player_t *getPlayerByChar(game_t *game, char c){
     // create obh to store given char
@@ -264,7 +257,6 @@ player_t *getPlayerByChar(game_t *game, char c){
 /*
  * Return player with given player character name
  * See communication.h for detailed description.
- * TODO: change name and name format to match
  */
 void find_player2(void *arg, const char *key, void *item){
     htSearch2_t *search = (htSearch2_t *) arg;

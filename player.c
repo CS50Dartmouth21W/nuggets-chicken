@@ -24,7 +24,7 @@ player_t *player_new(char *name, game_t *game, const addr_t addr) {
     player->gold = 0;
     player->game = game;
     player->inRoom = 1;
-    player->id = game->playersJoined;
+    player->id = game->numPlayersTotal;
     player->addr = addr;
 
     //allocate memory for the visibility map

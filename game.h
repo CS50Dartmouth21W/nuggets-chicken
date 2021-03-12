@@ -20,6 +20,7 @@ typedef struct game {
     addr_t spectatorAddr;
     bool spectator;
     int playersJoined;
+    int numPlayersTotal;
     int MaxPlayers;
     int TotalGoldLeft;
     // hashes name -> player object

@@ -63,7 +63,7 @@ bool handleMessage(void *arg, const addr_t from, const char *message){
     // create a new player struct if first word is "PLAY"
     if(strcmp(cmd,"PLAY") == 0){
         // ADD A NEW PLAYER
-        if(game->playersJoined + 1 <= game->MaxPlayers){
+        if(game->playersJoined < game->MaxPlayers){
             if(nameconflict(game, messageArg) != 0){
                 quit(from, "Sorry - you must provide a unique player's name.");
             }else{
@@ -71,7 +71,7 @@ bool handleMessage(void *arg, const addr_t from, const char *message){
                 // add to hashtable of players
                 hashtable_insert(game->players, messageArg, player);   
                 game->playersJoined++;
-
+                game->numPlayersTotal++;
                 // send messages
                 sendOK(player);
                 sendGridInfo(game, from);
@@ -101,7 +101,12 @@ bool handleMessage(void *arg, const addr_t from, const char *message){
 
         switch(messageArg[0]){
             // quit game, if nobody left, game over
-            case 'Q': quitGame(game, from); return game->playersJoined == 0;
+            case 'Q': 
+                quitGame(game, from); 
+                if(player != NULL){
+                    game->map[player->row][player->col] = '.';
+                }
+                return game->playersJoined == 0;
 
             // singular move 
             case 'h': move(player, -1,  0); break; // move left

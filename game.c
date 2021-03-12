@@ -20,7 +20,6 @@ game_t *game_new(char *map[], int rows, int cols, int MaxPlayers, int TotalGold)
 
     game->TotalGoldLeft = TotalGold;
     game->goldcounts = malloc((rows + 1) * sizeof(int *));
-
     game->spectator = false;
 
     // memory allocation for array that tracks gold pile sizes
@@ -35,6 +34,7 @@ game_t *game_new(char *map[], int rows, int cols, int MaxPlayers, int TotalGold)
     game->players = hashtable_new(MaxPlayers);
     game->MaxPlayers = MaxPlayers;
     game->playersJoined = 0;
+    game->numPlayersTotal = 0;
     //counters_t *goldcounts = gold_generator(game);
 
     return game;
