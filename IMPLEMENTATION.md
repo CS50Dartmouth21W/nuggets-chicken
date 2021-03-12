@@ -35,8 +35,11 @@ Note: srand() is called in main, behavior is already seeded. This implementation
 Updates the visibility map of player
 1. Create a map tracking visited locations. All “slots” set to false initially
 2. Perform Depth First Search on the players location:
+	
 	2.1. Mark location as visited
+	
 	2.2. Loop through all 8 neighboring points
+	
 	2.3 If point is in bounds and is visible
 		2.3.1 Mark location as visible in player visibility map
 		2.3.2 Call dfs on that location
@@ -47,12 +50,16 @@ Returns whether a point is visible from player's perspective
 1. If point is on same row, loop through the columns and return if any character in row is not roomspot or gold
 2. If point is on same column, loop through the rows and return if any character in that column is not roomspot or gold
 3. Else
+	
 	3.1 Calculate the slope of the line between player and point (Δcolumn/Δrow)
+	
 	3.2 Set to ints j1 and j2 to the column with lower row number. These variables track the columns between the two points of interest
+	
 	3.3 Loop through rows between the player and point
-	3.3.1 Increment j1 by floor of slope and j2 by ceiling of slope
-	3.3.2 Return false if point not in bounds or character at the two locations are not room spot or gold
-	3.3.3 Repeat 3.1-3.3.2, but this time switching rows and columns (ie, Looping through columns and incrementing rows by Δrow/Δcolumn)
+	
+		3.3.1 Increment j1 by floor of slope and j2 by ceiling of slope
+		3.3.2 Return false if point not in bounds or character at the two locations are not room spot or gold
+		3.3.3 Repeat 3.1-3.3.2, but this time switching rows and columns (ie, Looping through columns and incrementing rows by Δrow/Δcolumn)
 4. return point is visible 
 
 
@@ -67,7 +74,7 @@ This function adds a new player struct into the hashtable of clients and drops t
 5. Add player to hashtable of players
 6. Return the player
 
-### handle_message
+#### handle_message
 
 This function processes messages passed between server and client.
 
@@ -186,11 +193,22 @@ Send display message with map information
 2. Call hashtable_iterate for players hashtable, passing in a helper method that copies player's visibility map into a string and calls `message_send`
 3. If spectator exists, copy game map into a string and call `message_send`
 
-### sendGameOver
+#### sendGameOver
 Send game over message
 1. allocate memory and concatenate GAME OVER message
 2. call `hashtable_iterate` on players hashtable, passing in a helper method that creates string with player letter and gold count
 3. if spectator exists, send message to spectator
+
+#### game_new
+Returns a new game struct
+1. Initialize all necessary variables and data structures, including gold count map and hashtable for players
+2. Return the game struct
+
+#### addSpectator
+Adds a new spectator
+1. If game already has spectator, send a quit message to old spectator
+2. Update the spectator address and spectator existence boolean
+
 
 
 ## APIs and Function Prototypes
@@ -227,29 +245,26 @@ void player_delete(void* item);
 
 ```
 
-
+### Other functions
 ```c
-map_loader(File* fp, hashtable_t *map_hash);
-gold_generator(hashtable_t *map_hash, int min, int max, int total, int ncols);
-get_visibile(hashtable_t *map_hash, char key, int position);
-update_maps(hashtable_t *map_hash);
-handle_message(void *arg, const addr_t from, const char *message);
-create_player(char *name, game_t* game);
-main(int argc, char* argv[]);
+game_t* map_loader(const char *file);
+void gold_generator(game_t *game);
+
 ```
 
 ## Data Structures
-* hashtable of clients:
-Has name as key and player struct as item
-Keeps track of all players and their information
-* spectator: 
-Stored as an item in the maps hashtable
-* maps:
-hashtable of maps for individual players and for the spectator/main map. The player name is key and array is item.
+* hashtable of players:
+	Keeps track of all players and their information. Has player name as key and player struct as item. 
+* game struct:
+	Tracks status of game. Stores data structures such as array with game map and hashtable of players.
+* player struct:
+	Tracks information of player, including name, visibility map, number of gold, game struct, etc
+* htSearch and htSearch2 structs:
+	Helper structs used solely for searching in hashtable. Used by `getPlayerByAddr`
+* arrays:
+	array of pointers to chars storing the map
 * message:
-leverages the message data type that will be sent from the server to the players and spectators
-* counters:
-Used to keep track of number of gold in gold piles
+	leverages the message data type that will be sent from the server to the players and spectators
 
 ## Resource Management
 
