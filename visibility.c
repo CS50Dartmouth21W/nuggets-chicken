@@ -101,23 +101,38 @@ static bool isVisible(int r, int c, int pr, int pc, player_t *player){
         int j1 = ((min(pr, r) == pr) ? pc : c);
         int j2 = ((min(pr, r) == pr) ? pc : c);
         if (m > 1) j1++;
+        if (m < 0) j1--;
 
         // loop through rows between the player and point
         for(int i = min(pr, r) + 1; i < max(pr, r); i++){
 
-            j1 += floor(m);
-            j2 += ceil(m);
+            if (m < 0 && m > -.65) {
+                if ((i%2) == 0) j1 += floor(m);
+            } else {
+                j1 += floor(m);
+            }
+            if (m > 0 && m < .65) {
+                if ((i%2) == 0) j2 += ceil(m);
+            } else {
+                j2 += ceil(m);
+            }
+
+            if (r == 20 && c == 14) {
+                printf("d1 %d %d %f %f\n", i, j1, floor(m), m);
+                printf("d2 %d %d %f %f\n", i, j2, ceil(m), m);
+            }
   
             // check point is in bounds
             if (j2 < cols && j1 < cols && j1 >= 0 && j2 >= 0) {
                 char ch1 = map[i][j1];
                 char ch2 = map[i][j2];
+                if (r == 20 && c == 14) printf("%c\n", ch1);
                 // return false if the two characters are not a room spot or gold
-                if ((ch1 != '.' && ch1 != '*') && (ch2 != '.' && ch2 != '*')) {
+                if (((ch1 != '.' && ch1 != '*') && (ch2 != '.' && ch2 != '*')) || ch1 == '#' || ch2 == '#') {
                     return false;
                 }
             } else {
-                return false;
+                if (j1 > cols || j1 < -6 || j2 > (cols + cols/2)) return false;
             }
         }
 
@@ -145,20 +160,29 @@ static bool isVisible(int r, int c, int pr, int pc, player_t *player){
                     if (j2 < (r+1)) j2 = (r+1);
                 }
             }
+
+            if (r == 20 && c == 14) {
+                printf("d3 %d %d %f %f\n", j1, i, floor(m), m);
+                printf("d4 %d %d %f %f\n", j2, i, ceil(m), m);
+            }
             // check point is in bounds
             if (j2 < rows && j1 < rows && j1 >= 0 && j2 >= 0) {
                 char ch1 = map[j1][i];
                 char ch2 = map[j2][i];
+                if (r == 20 && c == 14) printf("%c\n", ch1);
+                if (r == 20 && c == 14) printf("%c\n", ch2);
                 // return false if char is not a room spot or gold
-                if ((ch1 != '.' && ch1 != '*') && (ch2 != '.' && ch2 != '*')){
+                if (((ch1 != '.' && ch1 != '*') && (ch2 != '.' && ch2 != '*'))){
+                    if (r == 20 && c == 14) printf("3333333t\n");
                     return false; 
                 }
             } else {
-                return false;
+                if (r == 20 && c == 14) printf("5555553t\n");
+                if (j1 > rows || j1 < 0 || j2 > rows) return false;
             }
         }
     }
-
+    if (r == 20 && c == 14) printf("we didnt get here right\n");
     return true;
 }
 

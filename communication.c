@@ -13,7 +13,7 @@
 #include <stdbool.h>
 #include "./game.h"
 #include "./player.h"
-#include "./visibility.c"
+#include "./visibility.h"
 #include "communication.h"
 #include "./support/message.h"
 #include "./libcs50/hashtable.h"
@@ -75,8 +75,7 @@ void quitGame(game_t *game, addr_t addr) {
  * See communication.h for detailed description.
  */
 void sendOK(player_t *player){
-    #define MESSAGESIZE 5
-    char OkMessage[MESSAGESIZE];
+    char OkMessage[5];
 
     // concatenate OK and player ID to message
     sprintf(OkMessage, "OK %c", (char)(player->id + 'A'));

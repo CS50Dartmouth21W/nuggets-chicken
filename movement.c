@@ -16,6 +16,7 @@
 #include "./game.h"
 #include "./libcs50/hashtable.h"
 #include "communication.h"
+#include "visibility.h"
 
 /**************** global function declarations ****************/
 bool handleTimeout(void *arg);
