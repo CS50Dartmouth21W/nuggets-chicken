@@ -65,13 +65,12 @@ player_t *player_new(char *name, game_t *game, const addr_t addr) {
 /**************** player_delete ****************/
 void player_delete(void* item){
     // get the player from the item in the hashtable, then free it.
-    player_t *player = (player_t *) item;
-    if(player != NULL) {
+    if(item != NULL) {
+        player_t *player = (player_t *) item;
         for(int i = 0; i<player->game->rows; i++){
             free(player->visibility[i]);
         }
         free(player->visibility);
-
         free(player);
     }
 }
