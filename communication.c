@@ -52,14 +52,14 @@ void quit(const addr_t addr, const char *reason) {
  * See communication.h for detailed description.
  */
 void quitGame(game_t *game, addr_t addr) {
-    addr_t *spectatorAddr = game->spectatorAddr;
+    addr_t spectatorAddr = game->spectatorAddr;
 
-    if(spectatorAddr != NULL && message_eqAddr(addr, *spectatorAddr)){
+    if(game->spectator == true && message_eqAddr(addr, spectatorAddr)){
         // send quit message for a spectator
         quit(addr, "Thanks for Watching");
 
         // set the spectator address to null
-        game->spectatorAddr = NULL;         
+        game->spectator = false;         
     } else {
         // send quit message for a player
         quit(addr, "Thanks for Playing");
@@ -151,34 +151,10 @@ void sendDisplay(game_t *game, const addr_t addr){
         strcat(displayInfo, "\n");
     }
 
-    if (game->spectatorAddr != NULL){
-        addr_t specAddr = *(game->spectatorAddr);
-        printf("spectator address is %p\n", (game->spectatorAddr));
-        printf("spectator is %p\n", *(game->spectatorAddr));
-        printf("spec is %p\n", specAddr);
-        printf("Address received is %p\n", addr);
-        message_send(specAddr, displayInfo);
+    if (game->spectator == true){
+        message_send(game->spectatorAddr, displayInfo);
     }
 }
-
-// void sendSpectatorDisplay(game_t *game, const addr_t addr) {
-//     int rows = game->rows;      // get number of rows from game
-//     int cols = game->cols;      // get number of columns from game
-    
-//     char displayInfo[8 + (rows+1) * cols];  // create array for display info message
-//     strcpy(displayInfo, "DISPLAY\n");       // copy DISPLAY to info message
-    
-//     // hashtable_iterate(game->players, NULL, broadcastDisplay);
-    
-//     // spectator
-//     for(int i = 0; i < rows; i++) {
-//         // loop through rows, add to display info message with new line
-//         strcat(displayInfo, game->map[i]);
-//         strcat(displayInfo, "\n");
-//     }
-
-//     message_send(addr, displayInfo);
-// }
 
 /*********************** sendGameOver ************************/
 /*
@@ -205,8 +181,8 @@ void sendGameOver(game_t *game, addr_t addr){
     hashtable_iterate(game->players, message2, broadcast);
     
     // send message to spectator
-    if (game->spectatorAddr != NULL){
-        quit(*(game->spectatorAddr), message);
+    if (game->spectator == true){
+        quit((game->spectatorAddr), message);
     }
 }
 
