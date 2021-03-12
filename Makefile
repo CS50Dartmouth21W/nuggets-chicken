@@ -31,7 +31,7 @@ test: $(PROG)
 	./testing.sh
 
 valgrind: $(PROG)
-	
+	valgrind ./server maps/main.txt 1	
 
 
 clean:

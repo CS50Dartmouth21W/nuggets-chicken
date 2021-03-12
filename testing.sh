@@ -6,25 +6,25 @@
 # Not sure how to kill program after each run so it doesn't wait for player to join.
 
 # valid input
-./server maps/main.txt
+./server maps/main.txt <a.txt
 
 # valid input with seed
-./server maps/main.txt 1
+./server maps/main.txt 1 <a.txt
 
 # valid input
-./server maps/fewspots.txt
+./server maps/fewspots.txt <a.txt
 
 # valid input
-./server maps/narrow.txt 15
+./server maps/narrow.txt 15 <a.txt
 
 # valid input (high seed)
-./server maps/narrow.txt 10000
+./server maps/narrow.txt 10000 <a.txt
 
 # valid input
-./server maps/hole.txt
+./server maps/hole.txt <a.txt
 
 # valid input
-./server maps/big.txt 3000
+./server maps/big.txt 3000 <a.txt
 
 # ------ error cases -----------
 
@@ -47,9 +47,11 @@
 ./server maps/main.txt -0.01
 
 # invalid seed
+echo here
 ./server maps/main.txt 0
 
-# invalid seed 
+# invalid seed
+echo here2
 ./server maps/main.txt -1
 
 # invalid seed
@@ -58,52 +60,3 @@
 # non-existent map file
 ./server dartmouthmap.txt 2
 
-
-
-
-
-# testing for player
-
-# When running these commands individually, the port number is saved correctly. (ie, executing ./server, killing the program, saving variable in port)
-# This doesn't work when running everything together in a shell script. Doesn't seem like the second command gets executed.
-
-./server 2>server.log maps/main.txt
-port=$(tail -n 1 server.log | grep -o '[0-9]*')
-./player 2>player.log localhost $port playername
-./player 2>spectator.log localhost $port
-
-
-
-# Not sure exactly how we can connect client with server since the port changes everytime.
-# Using 00000 right now
-
-# spectator join
-./player 2>spectator.log localhost 00000
-
-# another spectator attempts to join
-./player 2>spectator.log localhost 00000
-
-# player joins
-./player 2>player.log localhost 00000 p1
-
-# player joins
-./player 2>player.log localhost 00000 p2
-
-# player joins
-./player 2>player.log localhost 00000 p3
-
-# player joins
-./player 2>player.log localhost 00000 p4
-
-# player joins (multiple words in name)
-./player 2>player.log localhost 00000 big green
-
-# player joins (mulitple words in name)
-./player 2>player.log localhost 00000 dartmouth big green
-
-# error cases
-
-# too few arguments
-./player
-
-./player localhost
