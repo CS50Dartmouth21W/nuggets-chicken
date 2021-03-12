@@ -87,7 +87,6 @@ bool handleMessage(void *arg, const addr_t from, const char *message){
     } else if(strcmp(cmd, "SPECTATE") == 0){
         // ADD A SPECTATOR
         addSpectator(game, from);
-        printf("spectator address is from: %p\n", from);
         sendGridInfo(game, from);
         sendGoldInfo(game, NULL, from, 0);
         sendDisplay(game, from);

@@ -171,7 +171,6 @@ void sendGameOver(game_t *game, addr_t addr){
     char message2[MESSAGESIZE]; // create array for message 2
 
     hashtable_iterate(game->players, message, create_message);
-    printf("%s\n", message);
 
     // copy message to message 2 and free message 
     strcpy(message2, message);  
@@ -288,7 +287,6 @@ void create_message(void *arg, const char *key, void *item){
 
     // concatenate message with player letter and gold
     sprintf(line, "%c %10d %10s\n", player->letter, player->gold, key); 
-    printf("%s", line);
     strcat(message, line);
 }
 
