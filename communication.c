@@ -3,7 +3,7 @@
  * All communication done wiht players and spectators. 
  * Responsible for networking, using message.h module
  *
- * Team: Nuggets
+ * Team Chicken
  *
  */
 
@@ -97,16 +97,12 @@ void sendGridInfo(game_t *game, addr_t addr){
     int numDigits = 6 + getNumDigits(rows) + getNumDigits(cols);
     char gridInfo[numDigits];   // create array for grid info
 
-    // TODO: check for buffer overflow
     // concatenate GRID message with rows and columns
     sprintf(gridInfo, "GRID %d %d", rows, cols);
 
     message_send(addr, gridInfo);
 }
 
-
-// TODO: move to comm.h: n is the amount of gold found
-// if player == NULL and n = 0, then it is from a spectator
 /********************** sendGoldInfo *************************/
 /*
  * Send gold maessage with amount of gold found
@@ -244,14 +240,12 @@ player_t *getPlayerByChar(game_t *game, char c){
 
     hashtable_iterate(game->players, obj, find_player2);
     
-    //free(obj->addr);
     // store result and free obj
     player_t *result = obj->result;
     free(obj); 
 
     return result;
 }
-
 
 /********************** find_player2 *************************/
 /*
