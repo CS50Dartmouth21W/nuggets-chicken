@@ -65,7 +65,7 @@ bool handleMessage(void *arg, const addr_t from, const char *message){
         // ADD A NEW PLAYER
         if(game->playersJoined + 1 <= game->MaxPlayers){
             if(nameconflict(game, messageArg) != 0){
-                quit(from, "Sorry - you must provide player's name.");
+                quit(from, "Sorry - you must provide a unique player's name.");
             }else{
                 player_t *player = player_new(messageArg, game, from);
                 // add to hashtable of players
