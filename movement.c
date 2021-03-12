@@ -57,7 +57,9 @@ bool handleMessage(void *arg, const addr_t from, const char *message){
     game_t *game = (game_t *) arg;
 
     // parse message
-    char *cmd = strtok(message, " ");
+    char messagecpy[200];
+    strcpy(messagecpy, message);
+    char *cmd = strtok(messagecpy, " ");
     char *messageArg = strtok(NULL, " ");
 
     // create a new player struct if first word is "PLAY"
