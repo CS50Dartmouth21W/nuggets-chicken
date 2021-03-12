@@ -7,7 +7,7 @@ S = ./support
 CC=gcc
 CFLAGS=-Wall -pedantic -std=c11 -ggdb -I$L
 PROG = server
-OBJS = server.o game.o player.o communication.o $S/message.o $S/log.o
+OBJS = server.o game.o player.o communication.o $S/message.o $S/log.o visibility.o
 LLIBS = $L/libcs50.a
 
 .PHONY: all clean test
