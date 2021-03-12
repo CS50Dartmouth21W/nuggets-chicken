@@ -54,18 +54,10 @@ void game_delete(game_t *game){
 
 // initializes the spectator address in the game struct
 void addSpectator(game_t *game, addr_t addr){
-    if(game->spectator == false){
+    if(game->spectator){
         // tell current spectator to quit
         quit((game->spectatorAddr), "You have been replaced by a new spectator.");
     }
-<<<<<<< HEAD
-    game->spectatorAddr = &addr;
-
-    printf("address of spectator is %p\n", &addr);
-    printf("address of spectator is %p\n", game->spectatorAddr);
-    printf("spectator is %p\n", *(game->spectatorAddr));
-=======
     game->spectatorAddr = addr;
     game->spectator = true;
->>>>>>> 080999af783cf3e95b88c480b361478a0cceeeb7
 }

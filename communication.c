@@ -176,7 +176,6 @@ void sendGameOver(game_t *game, addr_t addr){
 
     // copy message to message 2 and free message 
     strcpy(message2, message);  
-    free(message);
 
     hashtable_iterate(game->players, message2, broadcast);
     
@@ -184,6 +183,7 @@ void sendGameOver(game_t *game, addr_t addr){
     if (game->spectator == true){
         quit((game->spectatorAddr), message);
     }
+    free(message);
 }
 
 /************************ htSearch ***************************/
